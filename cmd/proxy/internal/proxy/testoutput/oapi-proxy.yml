@@ -166,7 +166,6 @@ components:
             required: true
             schema:
                 $ref: '#/components/schemas/ProfileUUID'
-    examples: {}
     requestBodies:
         ProfileProfile:
             required: true
@@ -178,9 +177,6 @@ components:
         ProfileTraceID:
             schema:
                 $ref: '#/components/schemas/ProfileZeroableString'
-    securitySchemes: {}
-    links: {}
-    callbacks: {}
     x-proxy:
         profile:
             spec: ./spec-profile.yml

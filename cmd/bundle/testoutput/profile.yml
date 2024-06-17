@@ -162,7 +162,6 @@ components:
             required: true
             schema:
                 $ref: '#/components/schemas/UUID'
-    examples: {}
     requestBodies:
         Profile:
             required: true
@@ -174,7 +173,4 @@ components:
         TraceID:
             schema:
                 $ref: '#/components/schemas/ZeroableString'
-    securitySchemes: {}
-    links: {}
-    callbacks: {}
     x-test: {}

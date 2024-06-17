@@ -222,15 +222,33 @@ func (c StubComponents) Render(docv3 *libopenapi.DocumentModel[v3.Document]) ([]
 
 func (c StubComponents) ToYamlNode() (n *yaml.Node, err error) {
 	m := orderedmap.New[string, any]()
-	m.Set("schemas", c.Schemas)
-	m.Set("responses", c.Responses)
-	m.Set("parameters", c.Parameters)
-	m.Set("examples", c.Examples)
-	m.Set("requestBodies", c.RequestBodies)
-	m.Set("headers", c.Headers)
-	m.Set("securitySchemes", c.SecuritySchemes)
-	m.Set("links", c.Links)
-	m.Set("callbacks", c.Callbacks)
+	if c.Schemas.Len() != 0 {
+		m.Set("schemas", c.Schemas)
+	}
+	if c.Responses.Len() != 0 {
+		m.Set("responses", c.Responses)
+	}
+	if c.Parameters.Len() != 0 {
+		m.Set("parameters", c.Parameters)
+	}
+	if c.Examples.Len() != 0 {
+		m.Set("examples", c.Examples)
+	}
+	if c.RequestBodies.Len() != 0 {
+		m.Set("requestBodies", c.RequestBodies)
+	}
+	if c.Headers.Len() != 0 {
+		m.Set("headers", c.Headers)
+	}
+	if c.SecuritySchemes.Len() != 0 {
+		m.Set("securitySchemes", c.SecuritySchemes)
+	}
+	if c.Links.Len() != 0 {
+		m.Set("links", c.Links)
+	}
+	if c.Callbacks.Len() != 0 {
+		m.Set("callbacks", c.Callbacks)
+	}
 	for item := range orderedmap.Iterate(context.Background(), c.Extensions) {
 		m.Set(item.Key(), item.Value())
 	}
