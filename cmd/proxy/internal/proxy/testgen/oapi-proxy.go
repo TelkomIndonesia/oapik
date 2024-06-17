@@ -247,6 +247,29 @@ type StrictUpstreamInterface interface {
 	Profile() http.HandlerFunc
 }
 
+type StrictOperationsMap[T any] struct {
+	GetProfile          T
+	PutProfile          T
+	GetValidatedProfile T
+}
+
+func (s StrictOperationsMap[T]) Get(opid string) (t T, found bool) {
+	switch opid {
+
+	case "GetProfile":
+		return s.GetProfile, true
+
+	case "PutProfile":
+		return s.PutProfile, true
+
+	case "GetValidatedProfile":
+		return s.GetValidatedProfile, true
+
+	}
+
+	return t, false
+}
+
 type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
 type StrictMiddlewareFunc = strictecho.StrictEchoMiddlewareFunc
 

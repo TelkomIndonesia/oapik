@@ -31,7 +31,6 @@ type ServerImpl struct {
 
 // GetProfile implements testgen.StrictServerInterface.
 func (s ServerImpl) GetProfile(ctx context.Context, request testgen.GetProfileRequestObject) (testgen.UpstreamProfileGetProfileRequestObject, error) {
-
 	return testgen.UpstreamProfileGetProfileRequestObject{
 		TenantId:  ctx.Value(ctxTenantID{}).(uuid.UUID),
 		ProfileId: request.ProfileId,
@@ -77,72 +76,99 @@ func TestProxy(t *testing.T) {
 	}
 	serverImpl := ServerImpl{}
 
-	t.Run("standard", func(t *testing.T) {
-		tenantID := uuid.New()
-		mw := func(f strictecho.StrictEchoHandlerFunc, operationID string) strictecho.StrictEchoHandlerFunc {
-			return func(ctx echo.Context, request interface{}) (response interface{}, err error) {
-				ctx.SetRequest(
-					ctx.Request().WithContext(
-						context.WithValue(ctx.Request().Context(),
-							ctxTenantID{}, tenantID,
-						)))
+	tenantID := uuid.New()
+	insertTenantID := func(f strictecho.StrictEchoHandlerFunc, operationID string) strictecho.StrictEchoHandlerFunc {
+		return func(ctx echo.Context, request interface{}) (response interface{}, err error) {
+			ctx.SetRequest(
+				ctx.Request().WithContext(
+					context.WithValue(ctx.Request().Context(),
+						ctxTenantID{}, tenantID,
+					)))
 
-				return f(ctx, request)
-			}
+			return f(ctx, request)
 		}
+	}
 
+	t.Run("Standard", func(t *testing.T) {
 		e := echo.New()
-		sh := testgen.NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{mw})
+		sh := testgen.NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{insertTenantID})
 		testgen.RegisterHandlers(e, sh)
 
 		id := uuid.NewString()
 		testtable := []struct {
-			i string
-			o string
+			name string
+			i    string
+			o    string
 		}{
 			{
-				i: "/profiles/" + id,
-				o: "/tenants/" + tenantID.String() + "/profiles/" + id,
+				name: "GetProfile",
+				i:    "/profiles/" + id,
+				o:    "/tenants/" + tenantID.String() + "/profiles/" + id,
+			},
+			{
+				name: "GetValidatedProfile",
+				i:    "/validated-profiles/" + id,
+				o:    "/tenants/" + tenantID.String() + "/profiles/" + id,
 			},
 		}
 
 		for _, d := range testtable {
-			req := httptest.NewRequest(http.MethodGet, d.i, nil)
-			res := httptest.NewRecorder()
-			e.ServeHTTP(res, req)
+			t.Run(d.name, func(t *testing.T) {
+				req := httptest.NewRequest(http.MethodGet, d.i, nil)
+				res := httptest.NewRecorder()
+				e.ServeHTTP(res, req)
 
-			assert.Equal(t, d.o, receivedURL)
-
+				assert.Equal(t, d.o, receivedURL)
+			})
 		}
 	})
 
-	t.Run("passthrough-middleware", func(t *testing.T) {
-		mw := func(f strictecho.StrictEchoHandlerFunc, operationID string) strictecho.StrictEchoHandlerFunc {
-			return func(ctx echo.Context, request interface{}) (response interface{}, err error) {
-				return request, err
+	t.Run("SelectivePassthroughMiddleware", func(t *testing.T) {
+		selectivePasstrough := func() testgen.StrictMiddlewareFunc {
+			excludes := testgen.StrictOperationsMap[bool]{
+				GetValidatedProfile: true,
+			}
+			return func(f strictecho.StrictEchoHandlerFunc, operationID string) strictecho.StrictEchoHandlerFunc {
+				if yes, _ := excludes.Get(operationID); yes {
+					return f
+				}
+
+				return func(ctx echo.Context, request interface{}) (response interface{}, err error) {
+					return request, err
+				}
 			}
 		}
 
 		e := echo.New()
-		sh := testgen.NewStrictHandler(nil, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{mw})
+		sh := testgen.NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{insertTenantID, selectivePasstrough()})
 		testgen.RegisterHandlers(e, sh)
 
 		id := uuid.NewString()
 		testtable := []struct {
-			i string
+			name string
+			i    string
+			o    string
 		}{
 			{
-				i: "/profiles/" + id,
+				name: "Passthrough",
+				i:    "/profiles/" + id,
+				o:    "/profiles/" + id,
+			},
+			{
+				name: "NotPassthrough",
+				i:    "/validated-profiles/" + id,
+				o:    "/tenants/" + tenantID.String() + "/profiles/" + id,
 			},
 		}
 
 		for _, d := range testtable {
-			req := httptest.NewRequest(http.MethodGet, d.i, nil)
-			res := httptest.NewRecorder()
-			e.ServeHTTP(res, req)
+			t.Run(d.name, func(t *testing.T) {
+				req := httptest.NewRequest(http.MethodGet, d.i, nil)
+				res := httptest.NewRecorder()
+				e.ServeHTTP(res, req)
 
-			assert.Equal(t, d.i, receivedURL)
-
+				assert.Equal(t, d.o, receivedURL)
+			})
 		}
 	})
 

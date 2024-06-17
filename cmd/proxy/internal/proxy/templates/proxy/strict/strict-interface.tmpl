@@ -33,3 +33,20 @@ type StrictUpstreamInterface interface {
     {{.}}() http.HandlerFunc 
 {{end}}
 } 
+
+type StrictOperationsMap[T any] struct{
+{{range .}}
+    {{.OperationId | ucFirst}} T
+{{- end}}   
+}
+
+func (s StrictOperationsMap[T]) Get(opid string) (t T, found bool) {
+    switch opid {
+    {{range .}}
+    case "{{.OperationId}}": 
+        return s.{{.OperationId | ucFirst}}, true
+    {{end}}   
+    }
+
+    return t, false
+}
