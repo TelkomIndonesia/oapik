@@ -1,6 +1,6 @@
 # OpenAPI Keren
 
-Several utilities for working with openapi document.
+OpenAPI is awesome (Indonesian: keren), so we created several utilities for working with it.
 
 ## Features
 
@@ -12,17 +12,17 @@ Bundle splitted Open API files into one file while trying to persist all their u
 go run -mod=mod github.com/telkomindonesia/oapik/cmd bundle <path-to-main-spec> <path-to-generated-spec>
 ```
 
-For testing the functionality, you can use [spec inside testdata directory](./internal/bundle/testdata/profile/).
+For testing the functionality, you can use [spec inside testdata directory](./internal/bundle/testdata/profile/), which will produce file(s) similar to [testoutput directory](./internal/bundle/testoutput).
 
 ### Proxy
 
-Create a new spec by picking operations from other specs. The main purpose was to derive an OpenAPI spec for an [api-gateways or backend-for-frontends](https://microservices.io/patterns/apigateway.html) using OpenAPI spec of services behind it. It introduces a new `x-proxy` extension.
+Create a new spec by picking operations from other specs. The main purpose was to derive an OpenAPI spec for an [api-gateways or backend-for-frontends](https://microservices.io/patterns/apigateway.html) using OpenAPI spec of services behind it. It introduces a new `x-proxy` extension. It can also generate ready-to-use code which is inspired by oapi-codegen.
 
 ```bash
 go run -mod=mod github.com/telkomindonesia/oapik/cmd proxy <path-to-proxy-spec> <path-to-generated-spec> [<path-to-generated-go-file>]
 ```
 
-For testing the functionality, you can use [specs inside testdata directory](./internal/proxy/testdata/spec-proxy.yml).
+For testing the functionality, you can use [specs inside testdata directory](./internal/proxy/testdata/), which will produce file(s) similar to [testoutput directory](./internal/proxy/testoutput).
 
 ## Limitations
 
