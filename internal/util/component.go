@@ -78,8 +78,10 @@ func (c Components) copyComponents(docv3 *libopenapi.DocumentModel[v3.Document],
 		}
 	}
 
-	for m := range orderedmap.Iterate(context.Background(), docv3.Model.Components.Extensions) {
-		c.Extensions.Set(m.Key(), m.Value())
+	if docv3.Model.Components != nil && docv3.Model.Components.Extensions != nil {
+		for m := range orderedmap.Iterate(context.Background(), docv3.Model.Components.Extensions) {
+			c.Extensions.Set(m.Key(), m.Value())
+		}
 	}
 
 	if !localized {
@@ -212,7 +214,7 @@ func (c Components) RenderWith(docv3 *libopenapi.DocumentModel[v3.Document]) ([]
 
 	_, rootComp := utils.FindKeyNode(v3low.ComponentsLabel, root.Content)
 	if rootComp == nil {
-		root.Content = append(root.Content, comp.Content...)
+		root.Content = append(root.Content, comp.Content[0].Content...)
 	} else {
 		rootComp.Content = comp.Content[0].Content[1].Content
 	}
