@@ -9,7 +9,7 @@ Several utilities for working with openapi document.
 Bundle splitted Open API files into one file while trying to persist all their use of `$ref`.
 
 ```bash
-go run -mod=mod github.com/telkomindonesia/openapi-utils/cmd/bundle <path-to-main-spec> [<path-to-new-spec>]
+go run -mod=mod github.com/telkomindonesia/oapik/cmd/bundle <path-to-main-spec> [<path-to-new-spec>]
 ```
 
 For testing the functionality, you can use [spec inside testdata directory](./cmd/bundle/testdata/profile/).
@@ -19,7 +19,7 @@ For testing the functionality, you can use [spec inside testdata directory](./cm
 Create a new spec by picking operations from other specs. The main purpose was to derive an OpenAPI spec for an [api-gateways or backend-for-frontends](https://microservices.io/patterns/apigateway.html) using OpenAPI spec of services behind it. It introduces a new `x-proxy` extension.
 
 ```bash
-go run -mod=mod github.com/telkomindonesia/openapi-utils/cmd/bundle <path-to-proxy-spec> [<path-to-new-spec>]
+go run -mod=mod github.com/telkomindonesia/oapik/cmd/bundle <path-to-proxy-spec> [<path-to-new-spec>]
 ```
 
 For testing the functionality, you can use [specs inside testdata directory](./cmd/proxy/internal/proxy/testdata/spec-proxy.yml).

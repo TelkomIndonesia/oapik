@@ -14,7 +14,7 @@ import (
 	"github.com/pb33f/libopenapi"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
-	"github.com/telkomindonesia/openapi-utils/internal/util"
+	"github.com/telkomindonesia/oapik/internal/util"
 )
 
 const prefixUpstream = "Upstream"
@@ -81,7 +81,7 @@ func Generate(ctx context.Context, specPath string) (err error) {
 		if err != nil {
 			return fmt.Errorf("fail to generate code: %w", err)
 		}
-		err = os.WriteFile("testgen/oapi-proxy.go", []byte(code), 0o644)
+		err = os.WriteFile("testoutput/oapi-proxy.go", []byte(code), 0o644)
 		if err != nil {
 			return fmt.Errorf("fail to write generated code: %w", err)
 		}
@@ -138,7 +138,7 @@ func Generate(ctx context.Context, specPath string) (err error) {
 				return fmt.Errorf("fail to generate code: %w", err)
 			}
 
-			file := fmt.Sprintf("testgen/oapi-upstream-%s.go", strings.ToLower(pop.GetName()))
+			file := fmt.Sprintf("testoutput/oapi-upstream-%s.go", strings.ToLower(pop.GetName()))
 			err = os.WriteFile(file, []byte(code), 0o644)
 			if err != nil {
 				return fmt.Errorf("fail to write generated code: %w", err)

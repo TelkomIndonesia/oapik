@@ -11,7 +11,7 @@ import (
 	"github.com/pb33f/libopenapi"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
-	"github.com/telkomindonesia/openapi-utils/internal/util"
+	"github.com/telkomindonesia/oapik/internal/util"
 )
 
 type ProxyExtension struct {

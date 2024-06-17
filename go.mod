@@ -1,4 +1,4 @@
-module github.com/telkomindonesia/openapi-utils
+module github.com/telkomindonesia/oapik
 
 go 1.21
 

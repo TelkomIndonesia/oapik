@@ -9,7 +9,7 @@ import (
 
 	"github.com/pb33f/libopenapi"
 	"github.com/pb33f/libopenapi/datamodel"
-	"github.com/telkomindonesia/openapi-utils/internal/util"
+	"github.com/telkomindonesia/oapik/internal/util"
 )
 
 func bundleFile(p string) (bytes []byte, err error) {

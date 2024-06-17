@@ -11,7 +11,7 @@ import (
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/codegen"
 	"github.com/pb33f/libopenapi"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
-	"github.com/telkomindonesia/openapi-utils/internal/util"
+	"github.com/telkomindonesia/oapik/internal/util"
 )
 
 type Proxies map[string]Proxy

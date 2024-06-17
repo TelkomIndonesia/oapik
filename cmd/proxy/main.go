@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/telkomindonesia/openapi-utils/cmd/proxy/internal/proxy"
+	"github.com/telkomindonesia/oapik/cmd/proxy/internal/proxy"
 )
 
 func main() {

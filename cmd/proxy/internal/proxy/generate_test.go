@@ -14,7 +14,7 @@ func TestGenerate(t *testing.T) {
 	require.NoError(t, err)
 
 	cmd := exec.Command("go", "test", ".", "-v")
-	cmd.Dir = "testgen"
+	cmd.Dir = "testoutput"
 	out, err := cmd.Output()
 	t.Log("\n" + string(out))
 	require.NoError(t, err)

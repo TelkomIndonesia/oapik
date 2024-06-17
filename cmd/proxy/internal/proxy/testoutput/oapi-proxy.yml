@@ -1,0 +1,186 @@
+openapi: "3.0.0"
+info:
+    title: "Proxy API"
+    version: "1.0.0"
+    license:
+        name: "Internal"
+        url: "http://localhost"
+servers:
+    - url: "http://localhost"
+security:
+    - {}
+paths:
+    "/profiles/{profile-id}":
+        get:
+            x-proxy:
+                name: profile
+                path: /tenants/{tenant-id}/profiles/{profile-id}
+                method: get
+                inject:
+                    parameters:
+                        - name: tenant-id
+                          in: path
+            summary: "get profile"
+            operationId: "GetProfile"
+            responses:
+                "200":
+                    $ref: '#/components/responses/ProfileProfile'
+                "404":
+                    $ref: '#/components/responses/ProfileProfileNotFound'
+                "500":
+                    description: "Error"
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    message:
+                                        $ref: '#/components/schemas/ProfileZeroableString'
+            parameters:
+                - name: "validate"
+                  in: query
+                  required: false
+                  schema:
+                    $ref: "#/components/schemas/ZeroableBoolean"
+                - $ref: '#/components/parameters/ProfileProfileID'
+                - name: "some-query"
+                  in: query
+                  required: false
+                  schema:
+                    type: string
+        put:
+            x-proxy:
+                name: profile
+                path: /tenants/{tenant-id}/profiles/{profile-id}
+                method: put
+                inject:
+                    parameters:
+                        - name: tenant-id
+                          in: path
+            summary: "Create/Update profile"
+            operationId: PutProfile
+            requestBody:
+                $ref: '#/components/requestBodies/ProfileProfile'
+            responses:
+                "201":
+                    description: success
+                    content:
+                        "application/json":
+                            schema:
+                                $ref: '#/components/schemas/ProfileProfile'
+                "400":
+                    description: bad request
+            parameters:
+                - $ref: '#/components/parameters/ProfileProfileID'
+                - name: "some-query"
+                  in: query
+                  required: false
+                  schema:
+                    type: string
+    "/validated-profiles/{profile-id}":
+        get:
+            x-proxy:
+                name: profile
+                path: /tenants/{tenant-id}/profiles/{profile-id}
+                method: get
+                inject:
+                    parameters:
+                        - name: tenant-id
+                          in: path
+            summary: "get profile"
+            operationId: "GetValidatedProfile"
+            responses:
+                "200":
+                    $ref: '#/components/responses/ProfileProfile'
+                "404":
+                    $ref: '#/components/responses/ProfileProfileNotFound'
+                "500":
+                    description: "Error"
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    message:
+                                        $ref: '#/components/schemas/ProfileZeroableString'
+            parameters:
+                - $ref: '#/components/parameters/ProfileProfileID'
+                - name: "some-query"
+                  in: query
+                  required: false
+                  schema:
+                    type: string
+components:
+    schemas:
+        ProfileUUID:
+            type: string
+            format: uuid
+            x-go-type-skip-optional-pointer: true
+        ProfileZeroableString:
+            type: string
+            x-go-type-skip-optional-pointer: true
+        ProfileProfile:
+            properties:
+                id:
+                    $ref: '#/components/schemas/ProfileUUID'
+                tenant_id:
+                    $ref: '#/components/schemas/ProfileUUID'
+                nin:
+                    $ref: '#/components/schemas/ProfileZeroableString'
+                name:
+                    $ref: '#/components/schemas/ProfileZeroableString'
+                email:
+                    $ref: '#/components/schemas/ProfileZeroableString'
+                phone:
+                    $ref: '#/components/schemas/ProfileZeroableString'
+                dob:
+                    $ref: '#/components/schemas/ProfileZeroableTime'
+        ProfileZeroableTime:
+            type: string
+            format: date-time
+            x-go-type-skip-optional-pointer: true
+        ZeroableBoolean:
+            type: boolean
+    responses:
+        ProfileProfile:
+            description: "success"
+            headers:
+                TraceID:
+                    $ref: '#/components/headers/ProfileTraceID'
+            content:
+                "application/json":
+                    schema:
+                        $ref: '#/components/schemas/ProfileProfile'
+        ProfileProfileNotFound:
+            $ref: '#/components/responses/ProfileError'
+        ProfileError:
+            description: "not found"
+            content:
+                "application/json":
+                    schema:
+                        properties:
+                            id:
+                                $ref: '#/components/schemas/ProfileUUID'
+    parameters:
+        ProfileProfileID:
+            name: profile-id
+            in: path
+            required: true
+            schema:
+                $ref: '#/components/schemas/ProfileUUID'
+    examples: {}
+    requestBodies:
+        ProfileProfile:
+            required: true
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ProfileProfile'
+    headers:
+        ProfileTraceID:
+            schema:
+                $ref: '#/components/schemas/ProfileZeroableString'
+    securitySchemes: {}
+    links: {}
+    callbacks: {}
+    x-proxy:
+        profile:
+            spec: ./spec-profile.yml
