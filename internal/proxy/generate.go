@@ -110,13 +110,13 @@ func Generate(ctx context.Context, specPath string) (err error) {
 					op.OperationId = prefixUpstream + op.OperationId
 				}
 			}
-			components := util.NewStubComponents()
+			components := util.NewComponents()
 			components.CopyComponents(docv3, "")
 			components.CopyComponents(docv3, prefixUpstream)
-			_, ndoc, ndocv3, _ := components.RenderAndReload(doc)
-			components = util.NewStubComponents()
+			_, ndoc, ndocv3, _ := components.RenderAndReloadWith(doc)
+			components = util.NewComponents()
 			components.CopyAndLocalizeComponents(ndocv3, prefixUpstream)
-			spec, _, _, _ := components.RenderAndReload(ndoc)
+			spec, _, _, _ := components.RenderAndReloadWith(ndoc)
 
 			kinspec, err := loadKinDoc(spec)
 			if err != nil {

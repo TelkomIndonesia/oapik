@@ -165,7 +165,7 @@ func (pe *ProxyExtension) pruneAndPrefixUpstream(ctx context.Context) (err error
 
 		// recreate the doc so that we could get references of used operations only
 		// also add components with prefix so that it doesn't trigger error log from libopenapi
-		components := util.NewStubComponents()
+		components := util.NewComponents()
 		err := components.CopyComponents(docv3, "")
 		if err != nil {
 			return fmt.Errorf("fail to copy components: %w", err)
@@ -174,18 +174,18 @@ func (pe *ProxyExtension) pruneAndPrefixUpstream(ctx context.Context) (err error
 		if err != nil {
 			return fmt.Errorf("fail to copy components with prefix: %w", err)
 		}
-		_, doc, docv3, err = components.RenderAndReload(doc)
+		_, doc, docv3, err = components.RenderAndReloadWith(doc)
 		if err != nil {
 			return fmt.Errorf("fail to render and reload upstream doc: %w", err)
 		}
 
 		// rerender with prefixed added to all components
-		components = util.NewStubComponents()
+		components = util.NewComponents()
 		err = components.CopyAndLocalizeComponents(docv3, prefix)
 		if err != nil {
 			return fmt.Errorf("fail to copy components with prefix: %w", err)
 		}
-		_, doc, docv3, err = components.RenderAndReload(doc)
+		_, doc, docv3, err = components.RenderAndReloadWith(doc)
 		if err != nil {
 			return fmt.Errorf("fail to render and reload upstream doc: %w", err)
 		}
@@ -235,7 +235,7 @@ func (pe *ProxyExtension) Upstream() map[string]*Proxy {
 }
 
 func (pe *ProxyExtension) CreateProxyDoc() (b []byte, ndoc libopenapi.Document, docv3 *libopenapi.DocumentModel[v3.Document], err error) {
-	components := util.NewStubComponents()
+	components := util.NewComponents()
 
 	copied := map[*libopenapi.DocumentModel[v3.Document]]struct{}{}
 	for _, pop := range pe.proxied {
@@ -257,5 +257,5 @@ func (pe *ProxyExtension) CreateProxyDoc() (b []byte, ndoc libopenapi.Document, 
 		return nil, nil, nil, fmt.Errorf("fail to copy components on proxy doc: %w", err)
 	}
 
-	return components.RenderAndReload(pe.doc)
+	return components.RenderAndReloadWith(pe.doc)
 }
