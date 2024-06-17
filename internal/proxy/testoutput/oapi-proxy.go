@@ -63,7 +63,7 @@ type GetValidatedProfileParams struct {
 	SomeQuery *string `form:"some-query,omitempty" json:"some-query,omitempty"`
 }
 
-/* ignored */
+/* === */
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -199,7 +199,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 }
 
-/* ignored */
+/* === */
 type strictRequest interface {
 	ToRequest(base *http.Request) (*http.Request, error)
 }
@@ -375,7 +375,7 @@ func (sh *strictHandler) GetValidatedProfile(ctx echo.Context, profileId Profile
 	return nil
 }
 
-/* ignored */
+/* === */
 
 // UpstreamProfileProfile defines model for UpstreamProfileProfile.
 type UpstreamProfileProfile struct {
@@ -415,15 +415,15 @@ type UpstreamProfilePutProfileParams struct {
 	SomeQuery *string `form:"some-query,omitempty" json:"some-query,omitempty"`
 }
 
-/* ignored */
+/* === */
 
-/* ignored */
+/* === */
 
-/* ignored */
+/* === */
 
-/* ignored */
+/* === */
 
-/* ignored */
+/* === */
 
 type UpstreamProfileGetProfileRequestObject struct {
 	TenantId  UpstreamProfileUUID      `json:"tenant-id"`
@@ -545,4 +545,4 @@ func (r UpstreamProfilePutProfileRequestObject) ToRequest(base *http.Request) (*
 	return req, nil
 }
 
-/* ignored */
+/* === */
