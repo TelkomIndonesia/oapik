@@ -256,7 +256,6 @@ type StrictOperationsMap[T any] struct {
 
 func (s StrictOperationsMap[T]) Get(opid string) (t T, found bool) {
 	switch opid {
-
 	case "GetProfile":
 		return s.GetProfile, true
 
@@ -269,6 +268,14 @@ func (s StrictOperationsMap[T]) Get(opid string) (t T, found bool) {
 	}
 
 	return t, false
+}
+
+func (s StrictOperationsMap[T]) ToMap() (m map[string]T) {
+	return map[string]T{
+		"GetProfile":          s.GetProfile,
+		"PutProfile":          s.PutProfile,
+		"GetValidatedProfile": s.GetValidatedProfile,
+	}
 }
 
 type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc

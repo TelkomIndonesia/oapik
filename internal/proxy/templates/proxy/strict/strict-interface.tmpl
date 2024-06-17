@@ -42,11 +42,19 @@ type StrictOperationsMap[T any] struct{
 
 func (s StrictOperationsMap[T]) Get(opid string) (t T, found bool) {
     switch opid {
-    {{range .}}
+    {{- range .}}
     case "{{.OperationId}}": 
         return s.{{.OperationId | ucFirst}}, true
     {{end}}   
     }
 
     return t, false
+}
+
+func (s StrictOperationsMap[T]) ToMap() (m map[string]T) {
+    return map[string]T{
+    {{- range .}}
+        "{{.OperationId}}": s.{{.OperationId | ucFirst}},
+    {{- end}}  
+    }
 }
