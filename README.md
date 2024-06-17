@@ -1,4 +1,4 @@
-# OpenAPI Utils
+# OpenAPI Keren
 
 Several utilities for working with openapi document.
 
