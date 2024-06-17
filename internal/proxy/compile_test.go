@@ -12,7 +12,7 @@ import (
 
 func TestCompile(t *testing.T) {
 	src := "./testdata/spec-proxy.yml"
-	bytes, _, err := Compile(context.Background(), src)
+	bytes, err := Compile(context.Background(), src)
 	require.NoError(t, err)
 	err = os.WriteFile("testoutput/oapi-proxy.yml", []byte(bytes), 0o644)
 	require.NoError(t, err)

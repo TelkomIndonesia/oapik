@@ -1,4 +1,4 @@
-module testgen
+module testoutput
 
 go 1.22.2
 

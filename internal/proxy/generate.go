@@ -5,7 +5,6 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
-	"os"
 	"path"
 	"strings"
 
@@ -15,16 +14,12 @@ import (
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
 	"github.com/telkomindonesia/oapik/internal/util"
+	"golang.org/x/tools/imports"
 )
 
 const prefixUpstream = "Upstream"
 
-func Generate(ctx context.Context, specPath string) (err error) {
-	pe, err := NewProxyExtension(ctx, specPath)
-	if err != nil {
-		return fmt.Errorf("fail to create proxy extension: %w", err)
-	}
-
+func addTemplateFunc(pe ProxyExtension) {
 	codegen.TemplateFunctions["upstreamOperationID"] = func(opid string) string {
 		for k, v := range pe.Proxied() {
 			if opid != k.OperationId {
@@ -51,24 +46,36 @@ func Generate(ctx context.Context, specPath string) (err error) {
 		}
 		return
 	}
+}
+
+type GenerateOptions struct {
+	PackageName string
+}
+
+func Generate(ctx context.Context, specPath string, opts GenerateOptions) (bytes []byte, err error) {
+	pe, err := NewProxyExtension(ctx, specPath)
+	if err != nil {
+		return nil, fmt.Errorf("fail to create proxy extension: %w", err)
+	}
+	addTemplateFunc(pe)
 
 	{
 		spec, _, _, err := pe.CreateProxyDoc()
 		if err != nil {
-			return fmt.Errorf("fail to create proxy doc: %w", err)
+			return nil, fmt.Errorf("fail to create proxy doc: %w", err)
 		}
 		kinspec, err := loadKinDoc(spec)
 		if err != nil {
-			return fmt.Errorf("fail to reload proxy doc with kin: %w", err)
+			return nil, fmt.Errorf("fail to reload proxy doc with kin: %w", err)
 		}
 
 		t, err := loadTemplates("proxy")
 		if err != nil {
-			return fmt.Errorf("fail to load template: %w", err)
+			return nil, fmt.Errorf("fail to load template: %w", err)
 		}
 
 		code, err := codegen.Generate(kinspec, codegen.Configuration{
-			PackageName: "testgen",
+			PackageName: opts.PackageName,
 			Generate: codegen.GenerateOptions{
 				EchoServer: true,
 				Strict:     true,
@@ -76,28 +83,26 @@ func Generate(ctx context.Context, specPath string) (err error) {
 			},
 			OutputOptions: codegen.OutputOptions{
 				UserTemplates: t,
+				SkipFmt:       true,
 			},
 		})
 		if err != nil {
-			return fmt.Errorf("fail to generate code: %w", err)
+			return nil, fmt.Errorf("fail to generate code: %w", err)
 		}
-		err = os.WriteFile("testoutput/oapi-proxy.go", []byte(code), 0o644)
-		if err != nil {
-			return fmt.Errorf("fail to write generated code: %w", err)
-		}
+		bytes = append(bytes, []byte(code)...)
 	}
 
 	{
 		t, err := loadTemplates("upstream")
 		if err != nil {
-			return fmt.Errorf("fail to load template: %w", err)
+			return nil, fmt.Errorf("fail to load template: %w", err)
 		}
 
 		generated := map[*libopenapi.DocumentModel[v3.Document]]struct{}{}
 		for _, pop := range pe.Proxied() {
 			doc, err := pop.GetOpenAPIDoc()
 			if err != nil {
-				return fmt.Errorf("fail to find upstream openapi doc: %w", err)
+				return nil, fmt.Errorf("fail to find upstream openapi doc: %w", err)
 			}
 			docv3, _ := doc.BuildV3Model()
 			if _, ok := generated[docv3]; ok {
@@ -113,18 +118,17 @@ func Generate(ctx context.Context, specPath string) (err error) {
 			components := util.NewComponents()
 			components.CopyComponents(docv3, "")
 			components.CopyComponents(docv3, prefixUpstream)
-			_, ndoc, ndocv3, _ := components.RenderAndReloadWith(doc)
+			_, _, ndocv3, _ := components.RenderAndReloadWith(doc)
 			components = util.NewComponents()
 			components.CopyAndLocalizeComponents(ndocv3, prefixUpstream)
-			spec, _, _, _ := components.RenderAndReloadWith(ndoc)
+			spec, _ := components.RenderWith(ndocv3)
 
 			kinspec, err := loadKinDoc(spec)
 			if err != nil {
-				return fmt.Errorf("fail to reload proxy doc with kin: %w", err)
+				return nil, fmt.Errorf("fail to reload proxy doc with kin: %w", err)
 			}
 
 			code, err := codegen.Generate(kinspec, codegen.Configuration{
-				PackageName: "testgen",
 				Generate: codegen.GenerateOptions{
 					EchoServer: true,
 					Strict:     true,
@@ -132,22 +136,22 @@ func Generate(ctx context.Context, specPath string) (err error) {
 				},
 				OutputOptions: codegen.OutputOptions{
 					UserTemplates: t,
+					SkipFmt:       true,
 				},
 			})
 			if err != nil {
-				return fmt.Errorf("fail to generate code: %w", err)
+				return nil, fmt.Errorf("fail to generate code: %w", err)
 			}
-
-			file := fmt.Sprintf("testoutput/oapi-upstream-%s.go", strings.ToLower(pop.GetName()))
-			err = os.WriteFile(file, []byte(code), 0o644)
-			if err != nil {
-				return fmt.Errorf("fail to write generated code: %w", err)
-			}
+			bytes = append(bytes, []byte(code)...)
 
 			generated[docv3] = struct{}{}
 		}
 	}
 
+	bytes, err = imports.Process("oapi.go", bytes, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error formatting Go code %s: %w", bytes, err)
+	}
 	return
 }
 

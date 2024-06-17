@@ -12,7 +12,7 @@ type Context struct {
 
 type CLI struct {
 	Bundle Bundle `cmd:"bundle"`
-	Proxy  Bundle `cmd:"proxy"`
+	Proxy  Proxy  `cmd:"proxy"`
 }
 
 type CMD struct{}

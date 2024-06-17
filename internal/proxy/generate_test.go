@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"os"
 	"os/exec"
 	"testing"
 
@@ -10,7 +11,11 @@ import (
 )
 
 func TestGenerate(t *testing.T) {
-	err := Generate(context.Background(), "./testdata/spec-proxy.yml")
+	bytes, err := Generate(context.Background(), "./testdata/spec-proxy.yml", GenerateOptions{
+		PackageName: "testoutput",
+	})
+	require.NoError(t, err)
+	err = os.WriteFile("testoutput/oapi-proxy.go", []byte(bytes), 0o644)
 	require.NoError(t, err)
 
 	cmd := exec.Command("go", "test", ".", "-v")

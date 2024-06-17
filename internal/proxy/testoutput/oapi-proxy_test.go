@@ -1,4 +1,4 @@
-package testgen_test
+package testoutput_test
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
-	"testgen"
 	"testing"
+	"testoutput"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var _ testgen.StrictUpstreamInterface = ProxyImpl{}
-var _ testgen.StrictServerInterface = ServerImpl{}
+var _ testoutput.StrictUpstreamInterface = ProxyImpl{}
+var _ testoutput.StrictServerInterface = ServerImpl{}
 
 type ProxyImpl struct {
 	profile *httputil.ReverseProxy
@@ -30,33 +30,33 @@ type ServerImpl struct {
 }
 
 // GetProfile implements testgen.StrictServerInterface.
-func (s ServerImpl) GetProfile(ctx context.Context, request testgen.GetProfileRequestObject) (testgen.UpstreamProfileGetProfileRequestObject, error) {
-	return testgen.UpstreamProfileGetProfileRequestObject{
+func (s ServerImpl) GetProfile(ctx context.Context, request testoutput.GetProfileRequestObject) (testoutput.UpstreamProfileGetProfileRequestObject, error) {
+	return testoutput.UpstreamProfileGetProfileRequestObject{
 		TenantId:  ctx.Value(ctxTenantID{}).(uuid.UUID),
 		ProfileId: request.ProfileId,
-		Params: testgen.UpstreamProfileGetProfileParams{
+		Params: testoutput.UpstreamProfileGetProfileParams{
 			SomeQuery: request.Params.SomeQuery,
 		},
 	}, nil
 }
 
 // GetValidatedProfile implements testgen.StrictServerInterface.
-func (s ServerImpl) GetValidatedProfile(ctx context.Context, request testgen.GetValidatedProfileRequestObject) (testgen.UpstreamProfileGetProfileRequestObject, error) {
-	return testgen.UpstreamProfileGetProfileRequestObject{
+func (s ServerImpl) GetValidatedProfile(ctx context.Context, request testoutput.GetValidatedProfileRequestObject) (testoutput.UpstreamProfileGetProfileRequestObject, error) {
+	return testoutput.UpstreamProfileGetProfileRequestObject{
 		TenantId:  ctx.Value(ctxTenantID{}).(uuid.UUID),
 		ProfileId: request.ProfileId,
-		Params: testgen.UpstreamProfileGetProfileParams{
+		Params: testoutput.UpstreamProfileGetProfileParams{
 			SomeQuery: request.Params.SomeQuery,
 		},
 	}, nil
 }
 
 // PutProfile implements testgen.StrictServerInterface.
-func (s ServerImpl) PutProfile(ctx context.Context, request testgen.PutProfileRequestObject) (testgen.UpstreamProfilePutProfileRequestObject, error) {
-	return testgen.UpstreamProfilePutProfileRequestObject{
+func (s ServerImpl) PutProfile(ctx context.Context, request testoutput.PutProfileRequestObject) (testoutput.UpstreamProfilePutProfileRequestObject, error) {
+	return testoutput.UpstreamProfilePutProfileRequestObject{
 		TenantId:  ctx.Value(ctxTenantID{}).(uuid.UUID),
 		ProfileId: request.ProfileId,
-		Params: testgen.UpstreamProfilePutProfileParams{
+		Params: testoutput.UpstreamProfilePutProfileParams{
 			SomeQuery: request.Params.SomeQuery,
 		},
 	}, nil
@@ -91,8 +91,8 @@ func TestProxy(t *testing.T) {
 
 	t.Run("Standard", func(t *testing.T) {
 		e := echo.New()
-		sh := testgen.NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{insertTenantID})
-		testgen.RegisterHandlers(e, sh)
+		sh := testoutput.NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{insertTenantID})
+		testoutput.RegisterHandlers(e, sh)
 
 		id := uuid.NewString()
 		testtable := []struct {
@@ -124,8 +124,8 @@ func TestProxy(t *testing.T) {
 	})
 
 	t.Run("SelectivePassthroughMiddleware", func(t *testing.T) {
-		selectivePasstrough := func() testgen.StrictMiddlewareFunc {
-			excludes := testgen.StrictOperationsMap[bool]{
+		selectivePasstrough := func() testoutput.StrictMiddlewareFunc {
+			excludes := testoutput.StrictOperationsMap[bool]{
 				GetValidatedProfile: true,
 			}
 			return func(f strictecho.StrictEchoHandlerFunc, operationID string) strictecho.StrictEchoHandlerFunc {
@@ -140,8 +140,8 @@ func TestProxy(t *testing.T) {
 		}
 
 		e := echo.New()
-		sh := testgen.NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{insertTenantID, selectivePasstrough()})
-		testgen.RegisterHandlers(e, sh)
+		sh := testoutput.NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{insertTenantID, selectivePasstrough()})
+		testoutput.RegisterHandlers(e, sh)
 
 		id := uuid.NewString()
 		testtable := []struct {

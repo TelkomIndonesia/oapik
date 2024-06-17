@@ -9,7 +9,7 @@ Several utilities for working with openapi document.
 Bundle splitted Open API files into one file while trying to persist all their use of `$ref`.
 
 ```bash
-go run -mod=mod github.com/telkomindonesia/oapik/cmd bundle <path-to-main-spec> [<path-to-new-spec>]
+go run -mod=mod github.com/telkomindonesia/oapik/cmd bundle <path-to-main-spec> <path-to-generated-spec>
 ```
 
 For testing the functionality, you can use [spec inside testdata directory](./internal/bundle/testdata/profile/).
@@ -19,12 +19,10 @@ For testing the functionality, you can use [spec inside testdata directory](./in
 Create a new spec by picking operations from other specs. The main purpose was to derive an OpenAPI spec for an [api-gateways or backend-for-frontends](https://microservices.io/patterns/apigateway.html) using OpenAPI spec of services behind it. It introduces a new `x-proxy` extension.
 
 ```bash
-go run -mod=mod github.com/telkomindonesia/oapik/cmd proxy <path-to-proxy-spec> [<path-to-new-spec>]
+go run -mod=mod github.com/telkomindonesia/oapik/cmd proxy <path-to-proxy-spec> <path-to-generated-spec> [<path-to-generated-go-file>]
 ```
 
 For testing the functionality, you can use [specs inside testdata directory](./internal/proxy/testdata/spec-proxy.yml).
-
-Next iteration will also include the ability to generate go code that utilize `httputil.ReverseProxy`, inspired by [oapi-codegen](https://github.com/deepmap/oapi-codegen).
 
 ## Limitations
 
