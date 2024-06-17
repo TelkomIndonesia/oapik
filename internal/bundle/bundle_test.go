@@ -1,4 +1,4 @@
-package main
+package bundle
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ import (
 
 func TestBundle(t *testing.T) {
 	src := "./testdata/profile/profile.yml"
-	bytes, err := bundleFile(src)
+	bytes, err := File(src)
 	require.NoError(t, err)
 	err = os.WriteFile("testoutput/profile.yml", []byte(bytes), 0o644)
 	require.NoError(t, err)

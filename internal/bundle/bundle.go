@@ -1,4 +1,4 @@
-package main
+package bundle
 
 import (
 	"errors"
@@ -12,13 +12,13 @@ import (
 	"github.com/telkomindonesia/oapik/internal/util"
 )
 
-func bundleFile(p string) (bytes []byte, err error) {
-	by, err := os.ReadFile(p)
+func File(path string) (bytes []byte, err error) {
+	by, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("fail to read file :%w", err)
 	}
 	doc, err := libopenapi.NewDocumentWithConfiguration([]byte(by), &datamodel.DocumentConfiguration{
-		BasePath:                filepath.Dir(p),
+		BasePath:                filepath.Dir(path),
 		ExtractRefsSequentially: true,
 		Logger: slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 			Level: slog.LevelWarn,
@@ -36,7 +36,7 @@ func bundleFile(p string) (bytes []byte, err error) {
 	return
 }
 
-func bundle(doc libopenapi.Document) (b []byte, err error) {
+func bundle(doc libopenapi.Document) (bytes []byte, err error) {
 	docv3, errs := doc.BuildV3Model()
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("fail to re-build openapi spec: %w", errors.Join(errs...))

@@ -3,6 +3,7 @@ module github.com/telkomindonesia/oapik
 go 1.21
 
 require (
+	github.com/alecthomas/kong v0.9.0
 	github.com/getkin/kin-openapi v0.125.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.3.0
 	github.com/pb33f/libopenapi v0.16.8
