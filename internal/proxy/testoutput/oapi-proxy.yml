@@ -10,6 +10,37 @@ servers:
 security:
     - {}
 paths:
+    "/tenants/{tenant-id}/profiles/{profile-id}":
+        get:
+            x-proxy:
+                name: profile
+            summary: "get profile"
+            operationId: "profile-GetProfile"
+            responses:
+                "200":
+                    $ref: '#/components/responses/profile-Profile'
+                "404":
+                    $ref: '#/components/responses/profile-ProfileNotFound'
+                "500":
+                    description: "Error"
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    message:
+                                        $ref: '#/components/schemas/profile-ZeroableString'
+            parameters:
+                - name: tenant-id
+                  required: true
+                  in: path
+                  schema:
+                    $ref: '#/components/schemas/profile-UUID'
+                - $ref: '#/components/parameters/profile-ProfileID'
+                - name: "some-query"
+                  in: query
+                  required: false
+                  schema:
+                    type: string
     "/profiles/{profile-id}":
         get:
             x-proxy:
@@ -24,9 +55,9 @@ paths:
             operationId: "GetProfile"
             responses:
                 "200":
-                    $ref: '#/components/responses/ProfileProfile'
+                    $ref: '#/components/responses/profile-Profile'
                 "404":
-                    $ref: '#/components/responses/ProfileProfileNotFound'
+                    $ref: '#/components/responses/profile-ProfileNotFound'
                 "500":
                     description: "Error"
                     content:
@@ -34,14 +65,14 @@ paths:
                             schema:
                                 properties:
                                     message:
-                                        $ref: '#/components/schemas/ProfileZeroableString'
+                                        $ref: '#/components/schemas/profile-ZeroableString'
             parameters:
                 - name: "validate"
                   in: query
                   required: false
                   schema:
                     $ref: "#/components/schemas/ZeroableBoolean"
-                - $ref: '#/components/parameters/ProfileProfileID'
+                - $ref: '#/components/parameters/profile-ProfileID'
                 - name: "some-query"
                   in: query
                   required: false
@@ -59,18 +90,18 @@ paths:
             summary: "Create/Update profile"
             operationId: PutProfile
             requestBody:
-                $ref: '#/components/requestBodies/ProfileProfile'
+                $ref: '#/components/requestBodies/profile-Profile'
             responses:
                 "201":
                     description: success
                     content:
                         "application/json":
                             schema:
-                                $ref: '#/components/schemas/ProfileProfile'
+                                $ref: '#/components/schemas/profile-Profile'
                 "400":
                     description: bad request
             parameters:
-                - $ref: '#/components/parameters/ProfileProfileID'
+                - $ref: '#/components/parameters/profile-ProfileID'
                 - name: "some-query"
                   in: query
                   required: false
@@ -90,9 +121,9 @@ paths:
             operationId: "GetValidatedProfile"
             responses:
                 "200":
-                    $ref: '#/components/responses/ProfileProfile'
+                    $ref: '#/components/responses/profile-Profile'
                 "404":
-                    $ref: '#/components/responses/ProfileProfileNotFound'
+                    $ref: '#/components/responses/profile-ProfileNotFound'
                 "500":
                     description: "Error"
                     content:
@@ -100,9 +131,9 @@ paths:
                             schema:
                                 properties:
                                     message:
-                                        $ref: '#/components/schemas/ProfileZeroableString'
+                                        $ref: '#/components/schemas/profile-ZeroableString'
             parameters:
-                - $ref: '#/components/parameters/ProfileProfileID'
+                - $ref: '#/components/parameters/profile-ProfileID'
                 - name: "some-query"
                   in: query
                   required: false
@@ -110,73 +141,73 @@ paths:
                     type: string
 components:
     schemas:
-        ProfileUUID:
+        profile-UUID:
             type: string
             format: uuid
             x-go-type-skip-optional-pointer: true
-        ProfileZeroableString:
+        profile-ZeroableString:
             type: string
             x-go-type-skip-optional-pointer: true
-        ProfileProfile:
+        profile-Profile:
             properties:
                 id:
-                    $ref: '#/components/schemas/ProfileUUID'
+                    $ref: '#/components/schemas/profile-UUID'
                 tenant_id:
-                    $ref: '#/components/schemas/ProfileUUID'
+                    $ref: '#/components/schemas/profile-UUID'
                 nin:
-                    $ref: '#/components/schemas/ProfileZeroableString'
+                    $ref: '#/components/schemas/profile-ZeroableString'
                 name:
-                    $ref: '#/components/schemas/ProfileZeroableString'
+                    $ref: '#/components/schemas/profile-ZeroableString'
                 email:
-                    $ref: '#/components/schemas/ProfileZeroableString'
+                    $ref: '#/components/schemas/profile-ZeroableString'
                 phone:
-                    $ref: '#/components/schemas/ProfileZeroableString'
+                    $ref: '#/components/schemas/profile-ZeroableString'
                 dob:
-                    $ref: '#/components/schemas/ProfileZeroableTime'
-        ProfileZeroableTime:
+                    $ref: '#/components/schemas/profile-ZeroableTime'
+        profile-ZeroableTime:
             type: string
             format: date-time
             x-go-type-skip-optional-pointer: true
         ZeroableBoolean:
             type: boolean
     responses:
-        ProfileProfile:
+        profile-Profile:
             description: "success"
             headers:
                 TraceID:
-                    $ref: '#/components/headers/ProfileTraceID'
+                    $ref: '#/components/headers/profile-TraceID'
             content:
                 "application/json":
                     schema:
-                        $ref: '#/components/schemas/ProfileProfile'
-        ProfileProfileNotFound:
-            $ref: '#/components/responses/ProfileError'
-        ProfileError:
+                        $ref: '#/components/schemas/profile-Profile'
+        profile-ProfileNotFound:
+            $ref: '#/components/responses/profile-Error'
+        profile-Error:
             description: "not found"
             content:
                 "application/json":
                     schema:
                         properties:
                             id:
-                                $ref: '#/components/schemas/ProfileUUID'
+                                $ref: '#/components/schemas/profile-UUID'
     parameters:
-        ProfileProfileID:
+        profile-ProfileID:
             name: profile-id
             in: path
             required: true
             schema:
-                $ref: '#/components/schemas/ProfileUUID'
+                $ref: '#/components/schemas/profile-UUID'
     requestBodies:
-        ProfileProfile:
+        profile-Profile:
             required: true
             content:
                 application/json:
                     schema:
-                        $ref: '#/components/schemas/ProfileProfile'
+                        $ref: '#/components/schemas/profile-Profile'
     headers:
-        ProfileTraceID:
+        profile-TraceID:
             schema:
-                $ref: '#/components/schemas/ProfileZeroableString'
+                $ref: '#/components/schemas/profile-ZeroableString'
     x-proxy:
         profile:
             spec: ./spec-profile.yml

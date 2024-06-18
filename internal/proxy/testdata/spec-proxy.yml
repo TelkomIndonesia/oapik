@@ -10,6 +10,11 @@ servers:
 security:
   - {}
 paths:
+  "/tenants/{tenant-id}/profiles/{profile-id}":
+    get:
+      # populate the rest of parameters from an operation defined inside `spec`
+      x-proxy:
+        name: profile
   "/profiles/{profile-id}":
     get:
       operationId: GetProfile

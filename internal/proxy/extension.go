@@ -84,7 +84,7 @@ func (pe *ProxyExtension) loadProxy(ctx context.Context) (err error) {
 
 	pe.proxied = map[*v3.Operation]*ProxyOperation{}
 	for m := range orderedmap.Iterate(ctx, pe.docv3.Model.Paths.PathItems) {
-		for _, op := range util.GetOperationsMap(m.Value()) {
+		for method, op := range util.GetOperationsMap(m.Value()) {
 			if op.Extensions == nil {
 				continue
 			}
@@ -104,6 +104,12 @@ func (pe *ProxyExtension) loadProxy(ctx context.Context) (err error) {
 				}
 			} else {
 				pop.Spec = path.Join(pe.specDir, pop.Spec)
+			}
+			if pop.Path == "" {
+				pop.Path = m.Key()
+			}
+			if pop.Method == "" {
+				pop.Method = method
 			}
 
 			_, err = pop.GetOpenAPIDoc()
@@ -141,13 +147,13 @@ func (pe *ProxyExtension) pruneAndPrefixUpstream(ctx context.Context) (err error
 
 	for doc, uopPopMap := range upstreams {
 		docv3, _ := doc.BuildV3Model()
-		prefix := util.MapFirstEntry(util.MapFirstEntry(uopPopMap).Value).Key.GetName()
+		prefix := util.MapFirstEntry(util.MapFirstEntry(uopPopMap).Value).Key.GetName() + "-"
 
 		// add prefix to operation id
 		opmap := map[*v3.Operation]struct{}{}
-		for uop, popmap := range uopPopMap {
+		for uop := range uopPopMap {
 			opmap[uop] = struct{}{}
-			uop.OperationId = util.MapFirstEntry(popmap).Key.GetName() + uop.OperationId
+			uop.OperationId = prefix + uop.OperationId
 		}
 
 		// delete unused operations and path items

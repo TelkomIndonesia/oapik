@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/oapi-codegen/oapi-codegen/v2/pkg/codegen"
 	"github.com/pb33f/libopenapi"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/telkomindonesia/oapik/internal/util"
@@ -74,7 +73,7 @@ func (p Proxy) GetName() string {
 	if name == "" {
 		name, _ = strings.CutSuffix(path.Base(p.Spec), path.Ext(p.Spec))
 	}
-	return codegen.UppercaseFirstCharacter(name)
+	return name
 }
 
 type ProxyOperation struct {

@@ -29,7 +29,12 @@ func (p ProxyImpl) Profile() http.HandlerFunc {
 type ServerImpl struct {
 }
 
-// GetProfile implements testgen.StrictServerInterface.
+// ProfileGetProfile implements testoutput.StrictServerInterface.
+func (s ServerImpl) ProfileGetProfile(ctx context.Context, request testoutput.ProfileGetProfileRequestObject) (testoutput.ProfileGetProfileRequestObject, error) {
+	panic("unimplemented")
+}
+
+// GetProfile implements testoutput.StrictServerInterface.
 func (s ServerImpl) GetProfile(ctx context.Context, request testoutput.GetProfileRequestObject) (testoutput.UpstreamProfileGetProfileRequestObject, error) {
 	return testoutput.UpstreamProfileGetProfileRequestObject{
 		TenantId:  ctx.Value(ctxTenantID{}).(uuid.UUID),
@@ -40,7 +45,7 @@ func (s ServerImpl) GetProfile(ctx context.Context, request testoutput.GetProfil
 	}, nil
 }
 
-// GetValidatedProfile implements testgen.StrictServerInterface.
+// GetValidatedProfile implements testoutput.StrictServerInterface.
 func (s ServerImpl) GetValidatedProfile(ctx context.Context, request testoutput.GetValidatedProfileRequestObject) (testoutput.UpstreamProfileGetProfileRequestObject, error) {
 	return testoutput.UpstreamProfileGetProfileRequestObject{
 		TenantId:  ctx.Value(ctxTenantID{}).(uuid.UUID),
@@ -51,7 +56,7 @@ func (s ServerImpl) GetValidatedProfile(ctx context.Context, request testoutput.
 	}, nil
 }
 
-// PutProfile implements testgen.StrictServerInterface.
+// PutProfile implements testoutput.StrictServerInterface.
 func (s ServerImpl) PutProfile(ctx context.Context, request testoutput.PutProfileRequestObject) (testoutput.UpstreamProfilePutProfileRequestObject, error) {
 	return testoutput.UpstreamProfilePutProfileRequestObject{
 		TenantId:  ctx.Value(ctxTenantID{}).(uuid.UUID),
@@ -126,6 +131,8 @@ func TestProxy(t *testing.T) {
 	t.Run("SelectivePassthroughMiddleware", func(t *testing.T) {
 		selectivePasstrough := func() testoutput.StrictMiddlewareFunc {
 			excludes := testoutput.StrictOperationsMap[bool]{
+				GetProfile:          true,
+				PutProfile:          true,
 				GetValidatedProfile: true,
 			}
 			return func(f strictecho.StrictEchoHandlerFunc, operationID string) strictecho.StrictEchoHandlerFunc {
@@ -151,8 +158,8 @@ func TestProxy(t *testing.T) {
 		}{
 			{
 				name: "Passthrough",
-				i:    "/profiles/" + id,
-				o:    "/profiles/" + id,
+				i:    "/tenants/" + tenantID.String() + "/profiles/" + id,
+				o:    "/tenants/" + tenantID.String() + "/profiles/" + id,
 			},
 			{
 				name: "NotPassthrough",

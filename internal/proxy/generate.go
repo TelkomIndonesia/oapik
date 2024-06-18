@@ -17,7 +17,7 @@ import (
 	"golang.org/x/tools/imports"
 )
 
-const prefixUpstream = "Upstream"
+const prefixUpstream = "upstream-"
 
 func addTemplateFunc(pe ProxyExtension) {
 	codegen.TemplateFunctions["upstreamOperationID"] = func(opid string) string {
@@ -27,22 +27,22 @@ func addTemplateFunc(pe ProxyExtension) {
 			}
 
 			uop, _ := v.GetUpstreamOperation()
-			return prefixUpstream + uop.OperationId
+			return codegen.ToCamelCase(prefixUpstream + uop.OperationId)
 		}
 		return ""
 	}
 	codegen.TemplateFunctions["upstream"] = func(opid string) string {
 		for k, v := range pe.Proxied() {
-			if opid != k.OperationId {
+			if opid != codegen.ToCamelCase(k.OperationId) {
 				continue
 			}
-			return v.GetName()
+			return codegen.ToCamelCase(v.GetName())
 		}
 		return ""
 	}
 	codegen.TemplateFunctions["upstreams"] = func() (a []string) {
 		for _, p := range pe.Upstream() {
-			a = append(a, p.GetName())
+			a = append(a, codegen.ToCamelCase(p.GetName()))
 		}
 		return
 	}
@@ -150,7 +150,7 @@ func Generate(ctx context.Context, specPath string, opts GenerateOptions) (bytes
 
 	bytes, err = imports.Process("oapi.go", bytes, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error formatting Go code %s: %w", bytes, err)
+		return nil, fmt.Errorf("error formatting Go code: %w", err)
 	}
 	return
 }

@@ -16,7 +16,10 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-// ProfileProfile defines model for ProfileProfile.
+// ZeroableBoolean defines model for ZeroableBoolean.
+type ZeroableBoolean = bool
+
+// ProfileProfile defines model for profile-Profile.
 type ProfileProfile struct {
 	Dob      ProfileZeroableTime   `json:"dob,omitempty"`
 	Email    ProfileZeroableString `json:"email,omitempty"`
@@ -27,22 +30,19 @@ type ProfileProfile struct {
 	TenantId ProfileUUID           `json:"tenant_id,omitempty"`
 }
 
-// ProfileUUID defines model for ProfileUUID.
+// ProfileUUID defines model for profile-UUID.
 type ProfileUUID = openapi_types.UUID
 
-// ProfileZeroableString defines model for ProfileZeroableString.
+// ProfileZeroableString defines model for profile-ZeroableString.
 type ProfileZeroableString = string
 
-// ProfileZeroableTime defines model for ProfileZeroableTime.
+// ProfileZeroableTime defines model for profile-ZeroableTime.
 type ProfileZeroableTime = time.Time
 
-// ZeroableBoolean defines model for ZeroableBoolean.
-type ZeroableBoolean = bool
-
-// ProfileProfileID defines model for ProfileProfileID.
+// ProfileProfileID defines model for profile-ProfileID.
 type ProfileProfileID = ProfileUUID
 
-// ProfileError defines model for ProfileError.
+// ProfileError defines model for profile-Error.
 type ProfileError struct {
 	Id ProfileUUID `json:"id,omitempty"`
 }
@@ -55,6 +55,11 @@ type GetProfileParams struct {
 
 // PutProfileParams defines parameters for PutProfile.
 type PutProfileParams struct {
+	SomeQuery *string `form:"some-query,omitempty" json:"some-query,omitempty"`
+}
+
+// ProfileGetProfileParams defines parameters for ProfileGetProfile.
+type ProfileGetProfileParams struct {
 	SomeQuery *string `form:"some-query,omitempty" json:"some-query,omitempty"`
 }
 
@@ -73,6 +78,9 @@ type ServerInterface interface {
 	// Create/Update profile
 	// (PUT /profiles/{profile-id})
 	PutProfile(ctx echo.Context, profileId ProfileProfileID, params PutProfileParams) error
+	// get profile
+	// (GET /tenants/{tenant-id}/profiles/{profile-id})
+	ProfileGetProfile(ctx echo.Context, tenantId ProfileUUID, profileId ProfileProfileID, params ProfileGetProfileParams) error
 	// get profile
 	// (GET /validated-profiles/{profile-id})
 	GetValidatedProfile(ctx echo.Context, profileId ProfileProfileID, params GetValidatedProfileParams) error
@@ -140,6 +148,39 @@ func (w *ServerInterfaceWrapper) PutProfile(ctx echo.Context) error {
 	return err
 }
 
+// ProfileGetProfile converts echo context to params.
+func (w *ServerInterfaceWrapper) ProfileGetProfile(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "tenant-id" -------------
+	var tenantId ProfileUUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenant-id", ctx.Param("tenant-id"), &tenantId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tenant-id: %s", err))
+	}
+
+	// ------------- Path parameter "profile-id" -------------
+	var profileId ProfileProfileID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "profile-id", ctx.Param("profile-id"), &profileId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profile-id: %s", err))
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ProfileGetProfileParams
+	// ------------- Optional query parameter "some-query" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "some-query", ctx.QueryParams(), &params.SomeQuery)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter some-query: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ProfileGetProfile(ctx, tenantId, profileId, params)
+	return err
+}
+
 // GetValidatedProfile converts echo context to params.
 func (w *ServerInterfaceWrapper) GetValidatedProfile(ctx echo.Context) error {
 	var err error
@@ -195,6 +236,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/profiles/:profile-id", wrapper.GetProfile)
 	router.PUT(baseURL+"/profiles/:profile-id", wrapper.PutProfile)
+	router.GET(baseURL+"/tenants/:tenant-id/profiles/:profile-id", wrapper.ProfileGetProfile)
 	router.GET(baseURL+"/validated-profiles/:profile-id", wrapper.GetValidatedProfile)
 
 }
@@ -222,6 +264,16 @@ func (r PutProfileRequestObject) ToRequest(base *http.Request) (*http.Request, e
 	return base, nil
 }
 
+type ProfileGetProfileRequestObject struct {
+	TenantId  ProfileUUID      `json:"tenant-id"`
+	ProfileId ProfileProfileID `json:"profile-id"`
+	Params    ProfileGetProfileParams
+}
+
+func (r ProfileGetProfileRequestObject) ToRequest(base *http.Request) (*http.Request, error) {
+	return base, nil
+}
+
 type GetValidatedProfileRequestObject struct {
 	ProfileId ProfileProfileID `json:"profile-id"`
 	Params    GetValidatedProfileParams
@@ -240,6 +292,9 @@ type StrictServerInterface interface {
 	// (PUT /profiles/{profile-id})
 	PutProfile(ctx context.Context, request PutProfileRequestObject) (UpstreamProfilePutProfileRequestObject, error)
 	// get profile
+	// (GET /tenants/{tenant-id}/profiles/{profile-id})
+	ProfileGetProfile(ctx context.Context, request ProfileGetProfileRequestObject) (ProfileGetProfileRequestObject, error)
+	// get profile
 	// (GET /validated-profiles/{profile-id})
 	GetValidatedProfile(ctx context.Context, request GetValidatedProfileRequestObject) (UpstreamProfileGetProfileRequestObject, error)
 }
@@ -251,6 +306,7 @@ type StrictUpstreamInterface interface {
 type StrictOperationsMap[T any] struct {
 	GetProfile          T
 	PutProfile          T
+	ProfileGetProfile   T
 	GetValidatedProfile T
 }
 
@@ -261,6 +317,9 @@ func (s StrictOperationsMap[T]) Get(opid string) (t T, found bool) {
 
 	case "PutProfile":
 		return s.PutProfile, true
+
+	case "ProfileGetProfile":
+		return s.ProfileGetProfile, true
 
 	case "GetValidatedProfile":
 		return s.GetValidatedProfile, true
@@ -274,6 +333,7 @@ func (s StrictOperationsMap[T]) ToMap() (m map[string]T) {
 	return map[string]T{
 		"GetProfile":          s.GetProfile,
 		"PutProfile":          s.PutProfile,
+		"ProfileGetProfile":   s.ProfileGetProfile,
 		"GetValidatedProfile": s.GetValidatedProfile,
 	}
 }
@@ -347,6 +407,35 @@ func (sh *strictHandler) PutProfile(ctx echo.Context, profileId ProfileProfileID
 	return nil
 }
 
+// ProfileGetProfile operation middleware
+func (sh *strictHandler) ProfileGetProfile(ctx echo.Context, tenantId ProfileUUID, profileId ProfileProfileID, params ProfileGetProfileParams) error {
+	var request ProfileGetProfileRequestObject
+
+	request.TenantId = tenantId
+	request.ProfileId = profileId
+	request.Params = params
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ProfileGetProfile(ctx.Request().Context(), request.(ProfileGetProfileRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ProfileGetProfile")
+	}
+
+	obj, err := handler(ctx, request)
+	if err != nil {
+		return err
+	}
+
+	outreq, err := obj.(strictRequest).ToRequest(ctx.Request())
+	if err != nil {
+		return err
+	}
+
+	sh.sui.Profile()(ctx.Response(), outreq)
+
+	return nil
+}
+
 // GetValidatedProfile operation middleware
 func (sh *strictHandler) GetValidatedProfile(ctx echo.Context, profileId ProfileProfileID, params GetValidatedProfileParams) error {
 	var request GetValidatedProfileRequestObject
@@ -377,7 +466,7 @@ func (sh *strictHandler) GetValidatedProfile(ctx echo.Context, profileId Profile
 
 /* === */
 
-// UpstreamProfileProfile defines model for UpstreamProfileProfile.
+// UpstreamProfileProfile defines model for upstream-profile-Profile.
 type UpstreamProfileProfile struct {
 	Dob      UpstreamProfileZeroableTime   `json:"dob,omitempty"`
 	Email    UpstreamProfileZeroableString `json:"email,omitempty"`
@@ -388,19 +477,19 @@ type UpstreamProfileProfile struct {
 	TenantId UpstreamProfileUUID           `json:"tenant_id,omitempty"`
 }
 
-// UpstreamProfileUUID defines model for UpstreamProfileUUID.
+// UpstreamProfileUUID defines model for upstream-profile-UUID.
 type UpstreamProfileUUID = openapi_types.UUID
 
-// UpstreamProfileZeroableString defines model for UpstreamProfileZeroableString.
+// UpstreamProfileZeroableString defines model for upstream-profile-ZeroableString.
 type UpstreamProfileZeroableString = string
 
-// UpstreamProfileZeroableTime defines model for UpstreamProfileZeroableTime.
+// UpstreamProfileZeroableTime defines model for upstream-profile-ZeroableTime.
 type UpstreamProfileZeroableTime = time.Time
 
-// UpstreamProfileProfileID defines model for UpstreamProfileProfileID.
+// UpstreamProfileProfileID defines model for upstream-profile-ProfileID.
 type UpstreamProfileProfileID = UpstreamProfileUUID
 
-// UpstreamProfileError defines model for UpstreamProfileError.
+// UpstreamProfileError defines model for upstream-profile-Error.
 type UpstreamProfileError struct {
 	Id UpstreamProfileUUID `json:"id,omitempty"`
 }
