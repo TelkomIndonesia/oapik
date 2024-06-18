@@ -13,7 +13,9 @@
     {{range $paramIdx, $param := .PathParams}}
         {{.GoVariableName}} := r.{{.GoName | ucFirst}}
     {{- end}}
+    {{if .RequiresParamObject -}}
         params := r.Params
+    {{end -}}
 
         var err error
     {{range $paramIdx, $param := .PathParams}}

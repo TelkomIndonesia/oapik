@@ -220,7 +220,9 @@ func (pe *ProxyExtension) compile() (err error) {
 		*op = *uop
 
 		op.Parameters = opParam
-		op.OperationId = opID
+		if opID != "" {
+			op.OperationId = opID
+		}
 		op.Security = opSecurity
 		for m := range orderedmap.Iterate(context.Background(), op.Extensions) {
 			opExt.Set(m.Key(), m.Value())

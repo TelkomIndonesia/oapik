@@ -436,7 +436,6 @@ func (r UpstreamProfileGetProfileRequestObject) ToRequest(base *http.Request) (*
 	tenantId := r.TenantId
 	profileId := r.ProfileId
 	params := r.Params
-
 	var err error
 
 	var pathParam0 string
@@ -496,7 +495,6 @@ func (r UpstreamProfilePutProfileRequestObject) ToRequest(base *http.Request) (*
 	tenantId := r.TenantId
 	profileId := r.ProfileId
 	params := r.Params
-
 	var err error
 
 	var pathParam0 string
