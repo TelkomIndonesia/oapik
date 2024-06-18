@@ -80,6 +80,7 @@
     {{end}}{{/* if .QueryParams */}}
 
         req := base.Clone(base.Context())
+        req.Method = "{{.Method}}"
         req.URL = queryURL
 
     {{ if .HeaderParams }}

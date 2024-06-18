@@ -568,6 +568,7 @@ func (r UpstreamProfileGetProfileRequestObject) ToRequest(base *http.Request) (*
 	queryURL.RawQuery = queryValues.Encode()
 
 	req := base.Clone(base.Context())
+	req.Method = "GET"
 	req.URL = queryURL
 
 	return req, nil
@@ -627,6 +628,7 @@ func (r UpstreamProfilePutProfileRequestObject) ToRequest(base *http.Request) (*
 	queryURL.RawQuery = queryValues.Encode()
 
 	req := base.Clone(base.Context())
+	req.Method = "PUT"
 	req.URL = queryURL
 
 	return req, nil

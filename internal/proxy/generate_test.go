@@ -22,6 +22,6 @@ func TestGenerate(t *testing.T) {
 	cmd.Dir = "testoutput"
 	out, err := cmd.Output()
 	t.Log("\n" + string(out))
-	require.NoError(t, err)
-	assert.Equal(t, 0, cmd.ProcessState.ExitCode())
+	require.NoError(t, err, "test for generated code should not return error")
+	assert.Equal(t, 0, cmd.ProcessState.ExitCode(), "test for generated code should not exit with non-zero status code")
 }
