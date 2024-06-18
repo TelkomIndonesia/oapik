@@ -76,6 +76,9 @@ func Generate(ctx context.Context, specPath string, opts GenerateOptions) (bytes
 
 		code, err := codegen.Generate(kinspec, codegen.Configuration{
 			PackageName: opts.PackageName,
+			Compatibility: codegen.CompatibilityOptions{
+				AlwaysPrefixEnumValues: true,
+			},
 			Generate: codegen.GenerateOptions{
 				EchoServer: true,
 				Strict:     true,
@@ -129,6 +132,9 @@ func Generate(ctx context.Context, specPath string, opts GenerateOptions) (bytes
 			}
 
 			code, err := codegen.Generate(kinspec, codegen.Configuration{
+				Compatibility: codegen.CompatibilityOptions{
+					AlwaysPrefixEnumValues: true,
+				},
 				Generate: codegen.GenerateOptions{
 					EchoServer: true,
 					Strict:     true,
