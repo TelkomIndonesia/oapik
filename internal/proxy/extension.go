@@ -149,7 +149,9 @@ func (pe *ProxyExtension) pruneAndPrefixUpstream(ctx context.Context) (err error
 			opmap[uop] = struct{}{}
 			uop.OperationId = util.MapFirstEntry(popmap).Key.GetName() + uop.OperationId
 		}
+
 		// delete unused operations and path items
+		unusedPathItem := map[string]struct{}{}
 		for m := range orderedmap.Iterate(ctx, docv3.Model.Paths.PathItems) {
 			pathItem := m.Value()
 			for method, op := range util.GetOperationsMap(pathItem) {
@@ -159,8 +161,11 @@ func (pe *ProxyExtension) pruneAndPrefixUpstream(ctx context.Context) (err error
 				util.SetOperation(pathItem, method, nil)
 			}
 			if len(util.GetOperationsMap(pathItem)) == 0 {
-				docv3.Model.Paths.PathItems.Delete(m.Key())
+				unusedPathItem[m.Key()] = struct{}{}
 			}
+		}
+		for pi := range unusedPathItem {
+			docv3.Model.Paths.PathItems.Delete(pi)
 		}
 
 		// recreate the doc so that we could get references of used operations only
