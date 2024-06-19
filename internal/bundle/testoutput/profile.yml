@@ -94,6 +94,29 @@ paths:
                     description: bad request
                 "500":
                     description: server error
+    /tenants/{tenant-id}:
+        get:
+            operationId: "GetTenant"
+            summary: "Get Tenant"
+            parameters:
+                - name: tenant-id
+                  required: true
+                  in: path
+                  schema:
+                    $ref: '#/components/schemas/TheUUID'
+            responses:
+                "200":
+                    $ref: '#/components/responses/Tenant'
+                "404":
+                    $ref: '#/components/responses/TenantNotFound'
+                "500":
+                    description: "Error"
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    message:
+                                        $ref: '#/components/schemas/TheZeroableString'
 components:
     schemas:
         UUID:
@@ -135,6 +158,19 @@ components:
                     $ref: '#/components/schemas/ZeroableString'
                 dob:
                     $ref: '#/components/schemas/ZeroableTime'
+        TheUUID:
+            type: string
+            format: uuid
+            x-go-type-skip-optional-pointer: true
+        TheZeroableString:
+            type: string
+            x-go-type-skip-optional-pointer: true
+        Tenant:
+            properties:
+                id:
+                    $ref: '#/components/schemas/TheUUID'
+                name:
+                    $ref: '#/components/schemas/TheZeroableString'
     responses:
         Error:
             description: "error"
@@ -143,7 +179,7 @@ components:
                     schema:
                         properties:
                             id:
-                                $ref: '#/components/schemas/UUID'
+                                $ref: '#/components/schemas/TheUUID'
         Profile:
             description: "success"
             headers:
@@ -154,6 +190,17 @@ components:
                     schema:
                         $ref: '#/components/schemas/Profile'
         ProfileNotFound:
+            $ref: '#/components/responses/Error'
+        Tenant:
+            description: "success"
+            headers:
+                TraceID:
+                    $ref: '#/components/headers/TraceID'
+            content:
+                "application/json":
+                    schema:
+                        $ref: '#/components/schemas/Tenant'
+        TenantNotFound:
             $ref: '#/components/responses/Error'
     parameters:
         ProfileID:
@@ -172,5 +219,4 @@ components:
     headers:
         TraceID:
             schema:
-                $ref: '#/components/schemas/ZeroableString'
-    x-test: {}
+                $ref: '#/components/schemas/TheZeroableString'

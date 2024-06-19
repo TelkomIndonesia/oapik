@@ -65,7 +65,7 @@ func (c Components) copyComponents(docv3 *libopenapi.DocumentModel[v3.Document],
 				continue
 			}
 
-			err := c.copyComponentNode(ref, prefix)
+			exist, err := c.copyComponentNode(ref, prefix)
 			if err != nil {
 				return fmt.Errorf("fail to locate component: %w", err)
 			}
@@ -74,7 +74,12 @@ func (c Components) copyComponents(docv3 *libopenapi.DocumentModel[v3.Document],
 				continue
 			}
 
-			LocalizeReference(ref, prefix)
+			if !exist {
+				ref.Node.Content = idx.GetMappedReferences()[ref.FullDefinition].Node.Content
+			} else {
+				LocalizeReference(ref, prefix)
+			}
+
 		}
 	}
 
@@ -91,12 +96,13 @@ func (c Components) copyComponents(docv3 *libopenapi.DocumentModel[v3.Document],
 	return c.replaceRootNodes(docv3)
 }
 
-func (c Components) copyComponentNode(src *index.Reference, prefix string) (err error) {
+func (c Components) copyComponentNode(src *index.Reference, prefix string) (exist bool, err error) {
 	node, err := locateNode(src)
 	if err != nil {
-		return fmt.Errorf("fail to locate component: %w", err)
+		return false, fmt.Errorf("fail to locate component: %w", err)
 	}
 
+	exist = true
 	name := prefix + src.Name
 	switch {
 	case strings.HasPrefix(src.Definition, "#/components/schemas/"):
@@ -125,9 +131,12 @@ func (c Components) copyComponentNode(src *index.Reference, prefix string) (err 
 
 	case strings.HasPrefix(src.Definition, "#/components/callbacks/"):
 		c.Callbacks.Set(name, node)
+
+	default:
+		exist = false
 	}
 
-	return nil
+	return
 }
 
 func locateNode(ref *index.Reference) (node *yaml.Node, err error) {

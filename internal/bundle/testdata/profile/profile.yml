@@ -15,6 +15,16 @@ paths:
     $ref: paths/profiles.yml
   /tenants/{tenant-id}/profiles/{profile-id}:
     $ref: paths/profile.yml
-
-components:
-  x-test: {}
+  /tenants/{tenant-id}:
+    get:
+      operationId: "GetTenant"
+      summary: "Get Tenant"
+      parameters:
+        - $ref: tenants.yml#/paths/~1tenants~1{tenant-id}/parameters/0
+      responses:
+        200:
+          $ref: tenants.yml#/paths/~1tenants~1{tenant-id}/get/responses/200
+        404:
+          $ref: tenants.yml#/paths/~1tenants~1{tenant-id}/get/responses/404
+        500:
+          $ref: tenants.yml#/paths/~1tenants~1{tenant-id}/get/responses/500

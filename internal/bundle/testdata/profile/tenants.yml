@@ -1,0 +1,77 @@
+openapi: "3.0.0"
+info:
+    title: "Profile API"
+    version: "1.0.0"
+    license:
+        name: "Internal"
+        url: "http://localhost"
+servers:
+    - url: "https://profile:8443"
+    - url: "https://localhost:8443"
+security:
+    - {}
+paths:
+    /tenants/{tenant-id}:
+        parameters:
+            - name: tenant-id
+              required: true
+              in: path
+              schema:
+                  $ref: "#/components/schemas/TheUUID"
+        get:
+            security:
+                - {}
+            summary: "get tenant"
+            operationId: "GetTenant"
+            responses:
+                "200":
+                    $ref: "#/components/responses/Tenant"
+                "404":
+                    $ref: "#/components/responses/TenantNotFound"
+                "500":
+                    description: "Error"
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    message:
+                                        $ref: "#/components/schemas/TheZeroableString"
+components:
+    schemas:
+        TheUUID:
+            type: string
+            format: uuid
+            x-go-type-skip-optional-pointer: true
+        Tenant:
+            properties:
+                id:
+                    $ref: "#/components/schemas/TheUUID"
+                name:
+                    $ref: "#/components/schemas/TheZeroableString"
+        TheZeroableString:
+            type: string
+            x-go-type-skip-optional-pointer: true
+    responses:
+        Error:
+            description: "error"
+            content:
+                "application/json":
+                    schema:
+                        properties:
+                            id:
+                                $ref: "#/components/schemas/TheUUID"
+        Tenant:
+            description: "success"
+            headers:
+                TraceID:
+                    $ref: "#/components/headers/TraceID"
+            content:
+                "application/json":
+                    schema:
+                        $ref: "#/components/schemas/Tenant"
+        TenantNotFound:
+            $ref: "#/components/responses/Error"
+    headers:
+        TraceID:
+            schema:
+                $ref: "#/components/schemas/TheZeroableString"
