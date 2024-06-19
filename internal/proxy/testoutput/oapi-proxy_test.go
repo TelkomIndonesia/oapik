@@ -179,4 +179,7 @@ func TestProxy(t *testing.T) {
 		}
 	})
 
+	t.Run("OperationData", func(t *testing.T) {
+		assert.Equal(t, "profile", testoutput.StrictOperationsData.GetProfile.Extension.Proxy.Name)
+	})
 }

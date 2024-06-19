@@ -58,3 +58,21 @@ func (s StrictOperationsMap[T]) ToMap() (m map[string]T) {
     {{- end}}  
     }
 }
+
+{{ writeExtensionType . "StrictExtensionsStruct" }}
+
+type StrictOperationsDataStruct struct {
+    Extension StrictExtensionsStruct
+}
+var StrictOperationsData = func() (m StrictOperationsMap[StrictOperationsDataStruct]) {
+{{- range .}}
+    {
+        b := []byte({{ writeExtensionData . }})
+        if err := json.Unmarshal(b, &m.{{.OperationId}}.Extension); err != nil {
+            panic(err)
+        }
+    }
+{{- end}} 
+    
+    return
+}()

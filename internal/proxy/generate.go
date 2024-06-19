@@ -1,8 +1,10 @@
 package proxy
 
 import (
+	"bytes"
 	"context"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"path"
@@ -14,6 +16,7 @@ import (
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
 	"github.com/telkomindonesia/oapik/internal/util"
+	"github.com/twpayne/go-jsonstruct/v3"
 	"golang.org/x/tools/imports"
 )
 
@@ -45,6 +48,40 @@ func addTemplateFunc(pe ProxyExtension) {
 			a = append(a, codegen.ToCamelCase(p.GetName()))
 		}
 		return
+	}
+	codegen.TemplateFunctions["writeExtensionType"] = func(ops []codegen.OperationDefinition, name string) (string, error) {
+		jsGenerator := jsonstruct.NewGenerator(
+			jsonstruct.WithPackageName("nopackage"),
+			jsonstruct.WithTypeName(name),
+		)
+		for _, op := range ops {
+			m := map[string]interface{}{}
+			for k, v := range op.Spec.Extensions {
+				m[strings.TrimPrefix(k, "x-")] = v
+			}
+			jsGenerator.ObserveValue(m)
+		}
+		b, err := jsGenerator.Generate()
+		if err != nil {
+			return "", fmt.Errorf("fail to generate type definition %w", err)
+		}
+		b = bytes.Replace(b, []byte("package nopackage\n"), []byte{}, 1)
+		return string(b), err
+	}
+
+	codegen.TemplateFunctions["writeExtensionData"] = func(op codegen.OperationDefinition) (string, error) {
+		m := map[string]interface{}{}
+		for k, v := range op.Spec.Extensions {
+			m[strings.TrimPrefix(k, "x-")] = v
+		}
+
+		b, err := json.Marshal(m)
+		if err != nil {
+			return "", fmt.Errorf("fail to marshall to json: %w", err)
+		}
+		b, err = json.Marshal(string(b))
+
+		return string(b), err
 	}
 }
 

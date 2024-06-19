@@ -5,6 +5,7 @@ package testoutput
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -337,6 +338,53 @@ func (s StrictOperationsMap[T]) ToMap() (m map[string]T) {
 		"GetValidatedProfile": s.GetValidatedProfile,
 	}
 }
+
+type StrictExtensionsStruct struct {
+	Proxy struct {
+		Inject *struct {
+			Parameters []struct {
+				In   string `json:"in"`
+				Name string `json:"name"`
+			} `json:"parameters"`
+		} `json:"inject,omitempty"`
+		Method string `json:"method,omitempty"`
+		Name   string `json:"name"`
+		Path   string `json:"path,omitempty"`
+	} `json:"proxy"`
+}
+
+type StrictOperationsDataStruct struct {
+	Extension StrictExtensionsStruct
+}
+
+var StrictOperationsData = func() (m StrictOperationsMap[StrictOperationsDataStruct]) {
+	{
+		b := []byte("{\"proxy\":{\"inject\":{\"parameters\":[{\"in\":\"path\",\"name\":\"tenant-id\"}]},\"method\":\"get\",\"name\":\"profile\",\"path\":\"/tenants/{tenant-id}/profiles/{profile-id}\"}}")
+		if err := json.Unmarshal(b, &m.GetProfile.Extension); err != nil {
+			panic(err)
+		}
+	}
+	{
+		b := []byte("{\"proxy\":{\"inject\":{\"parameters\":[{\"in\":\"path\",\"name\":\"tenant-id\"}]},\"method\":\"put\",\"name\":\"profile\",\"path\":\"/tenants/{tenant-id}/profiles/{profile-id}\"}}")
+		if err := json.Unmarshal(b, &m.PutProfile.Extension); err != nil {
+			panic(err)
+		}
+	}
+	{
+		b := []byte("{\"proxy\":{\"name\":\"profile\"}}")
+		if err := json.Unmarshal(b, &m.ProfileGetProfile.Extension); err != nil {
+			panic(err)
+		}
+	}
+	{
+		b := []byte("{\"proxy\":{\"inject\":{\"parameters\":[{\"in\":\"path\",\"name\":\"tenant-id\"}]},\"method\":\"get\",\"name\":\"profile\",\"path\":\"/tenants/{tenant-id}/profiles/{profile-id}\"}}")
+		if err := json.Unmarshal(b, &m.GetValidatedProfile.Extension); err != nil {
+			panic(err)
+		}
+	}
+
+	return
+}()
 
 type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
 type StrictMiddlewareFunc = strictecho.StrictEchoMiddlewareFunc
