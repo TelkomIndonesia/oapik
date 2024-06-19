@@ -9,7 +9,7 @@ OpenAPI is awesome (Indonesian: keren), so we created several utilities for work
 Bundle splitted Open API files into one file while trying to persist all their use of `$ref`.
 
 ```bash
-go run -mod=mod github.com/telkomindonesia/oapik/cmd bundle <path-to-main-spec> <path-to-generated-spec>
+go run -mod=mod github.com/telkomindonesia/oapik/cmd/oapik bundle <path-to-main-spec> <path-to-generated-spec>
 ```
 
 For testing the functionality, you can use [spec inside testdata directory](./internal/bundle/testdata/profile/), which will produce file(s) similar to [testoutput directory](./internal/bundle/testoutput).
@@ -19,7 +19,7 @@ For testing the functionality, you can use [spec inside testdata directory](./in
 Create a new spec by picking operations from other specs. The main purpose was to derive an OpenAPI spec for a lean [backend-for-frontends](https://microservices.io/patterns/apigateway.html) using OpenAPI spec of upstream services behind it. It introduces a new `x-proxy` extension. It can also generate ready-to-use code which is inspired by (and utilize) oapi-codegen.
 
 ```bash
-go run -mod=mod github.com/telkomindonesia/oapik/cmd proxy <path-to-proxy-spec> <path-to-generated-spec> [<path-to-generated-go-file>]
+go run -mod=mod github.com/telkomindonesia/oapik/cmd/oapik proxy <path-to-proxy-spec> <path-to-generated-spec> [<path-to-generated-go-file>]
 ```
 
 For testing the functionality, you can use [specs inside testdata directory](./internal/proxy/testdata/), which will produce file(s) similar to [testoutput directory](./internal/proxy/testoutput).
