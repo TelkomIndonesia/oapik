@@ -75,11 +75,18 @@ func (c Components) copyComponents(docv3 *libopenapi.DocumentModel[v3.Document],
 			}
 
 			if !exist {
+				if refExp := strings.Split(ref.FullDefinition, "#/"); len(refExp) == 2 &&
+					(refExp[0] == ref.Index.GetSpecAbsolutePath() || refExp[0] == "") &&
+					ref.Index == docv3.Index {
+					// reference to root document. skip inline
+					continue
+				}
+
 				ref.Node.Content = idx.GetMappedReferences()[ref.FullDefinition].Node.Content
-			} else {
-				LocalizeReference(ref, prefix)
+				continue
 			}
 
+			LocalizeReference(ref, prefix)
 		}
 	}
 
