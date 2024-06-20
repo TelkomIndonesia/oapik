@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/pb33f/libopenapi"
+	"github.com/pb33f/libopenapi/datamodel/high/base"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
 	"github.com/telkomindonesia/oapik/internal/util"
@@ -219,6 +220,18 @@ func (pe *ProxyExtension) compile() (err error) {
 
 		// copy operation
 		opParam := util.CopyParameters(op.Parameters, params...)
+		if len(opParam) == 0 {
+			opParam = append(opParam, &v3.Parameter{
+				Name:        "-",
+				In:          "query",
+				Description: "IGNORE: workaround to prevent libopenapi from panicking",
+				Schema: base.CreateSchemaProxy(&base.Schema{
+					Type: []string{"string"},
+				}),
+				Deprecated:      true,
+				AllowEmptyValue: true,
+			})
+		}
 		opID := op.OperationId
 		opSecurity := op.Security
 		opExt := op.Extensions
