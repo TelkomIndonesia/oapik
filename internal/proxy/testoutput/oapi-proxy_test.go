@@ -2,6 +2,7 @@ package testoutput_test
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
@@ -13,6 +14,7 @@ import (
 	"github.com/labstack/echo/v4"
 	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var _ testoutput.StrictUpstreamInterface = ProxyImpl{}
@@ -70,9 +72,9 @@ func (s ServerImpl) PutProfile(ctx context.Context, request testoutput.PutProfil
 type ctxTenantID struct{}
 
 func TestProxy(t *testing.T) {
-	var receivedURL string
 	profileServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		receivedURL = r.URL.String()
+		w.WriteHeader(http.StatusAccepted)
+		io.WriteString(w, r.URL.String())
 	}))
 
 	u, _ := url.Parse(profileServer.URL)
@@ -122,8 +124,10 @@ func TestProxy(t *testing.T) {
 				req := httptest.NewRequest(http.MethodGet, d.i, nil)
 				res := httptest.NewRecorder()
 				e.ServeHTTP(res, req)
-
-				assert.Equal(t, d.o, receivedURL)
+				assert.Equal(t, http.StatusAccepted, res.Code)
+				rurl, err := io.ReadAll(res.Body)
+				require.NoError(t, err)
+				assert.Equal(t, d.o, string(rurl))
 			})
 		}
 	})
@@ -174,7 +178,10 @@ func TestProxy(t *testing.T) {
 				res := httptest.NewRecorder()
 				e.ServeHTTP(res, req)
 
-				assert.Equal(t, d.o, receivedURL)
+				assert.Equal(t, http.StatusAccepted, res.Code)
+				rurl, err := io.ReadAll(res.Body)
+				require.NoError(t, err)
+				assert.Equal(t, d.o, string(rurl))
 			})
 		}
 	})
