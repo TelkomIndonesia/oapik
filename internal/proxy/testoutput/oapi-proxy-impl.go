@@ -37,7 +37,7 @@ func (s serverImpl) GetProfile(ctx context.Context, request GetProfileRequestObj
 		a.profileIDNotZero(request.ProfileId),
 		a.or(
 			a.profileIDNotZero(request.ProfileId),
-			a.profileIDNotZero(request.ProfileId),
+			func() (bool, error) { return false, nil },
 		),
 	)
 
