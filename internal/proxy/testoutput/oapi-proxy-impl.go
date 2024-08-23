@@ -3,7 +3,6 @@ package testoutput
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httputil"
 
@@ -32,7 +31,7 @@ func (s serverImpl) ProfileGetProfile(ctx context.Context, request ProfileGetPro
 
 // GetProfile implements StrictServerInterface.
 func (s serverImpl) GetProfile(ctx context.Context, request GetProfileRequestObject) (UpstreamProfileGetProfileRequestObject, error) {
-	a, _ := authzAssertionFromContext(ctx)
+	a := authzAssertionFromContext(ctx)
 	a.expect(ctx.Value(ctxTenantID{}).(uuid.UUID),
 		a.profileIDNotZero(request.ProfileId),
 		a.or(
@@ -191,10 +190,7 @@ func (a *authzAssertion) or(reqs ...func() (bool, error)) func() (bool, error) {
 	}
 }
 
-func authzAssertionFromContext(ctx context.Context) (*authzAssertion, error) {
-	v, ok := (ctx.Value(authzAssertion{})).(*authzAssertion)
-	if !ok {
-		return nil, fmt.Errorf("no auth assertion")
-	}
-	return v, nil
+func authzAssertionFromContext(ctx context.Context) *authzAssertion {
+	v, _ := (ctx.Value(authzAssertion{})).(*authzAssertion)
+	return v
 }
