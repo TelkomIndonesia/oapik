@@ -31,7 +31,7 @@ func (s serverImpl) ProfileGetProfile(ctx context.Context, request ProfileGetPro
 
 // GetProfile implements StrictServerInterface.
 func (s serverImpl) GetProfile(ctx context.Context, request GetProfileRequestObject) (UpstreamProfileGetProfileRequestObject, error) {
-	authzAssertionExpect(ctx, func(a *authzAssertions) []authzAssertionFunc {
+	authzExpect(ctx, func(a *authzAssertions) []authzAssertionFunc {
 		return []authzAssertionFunc{
 			a.ProfileIDNotZero(request.ProfileId),
 			a.OR(
@@ -216,7 +216,7 @@ func (a *authzAssertions) ProfileIDNotZero(profileID uuid.UUID) authzAssertionFu
 	}
 }
 
-func authzAssertionExpect(ctx context.Context, f func(*authzAssertions) []authzAssertionFunc) (bool, error) {
+func authzExpect(ctx context.Context, f func(*authzAssertions) []authzAssertionFunc) (bool, error) {
 	v, _ := (ctx.Value(authzAssertions{})).(*authzAssertions)
 	return v.Expect(f(v)...)
 }
