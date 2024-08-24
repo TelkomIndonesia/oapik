@@ -31,7 +31,7 @@ func TestProxy(t *testing.T) {
 
 	t.Run("Standard", func(t *testing.T) {
 		e := echo.New()
-		sh := NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{insertTenantIDMiddleware(tenantID)})
+		sh := NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{injectTenantIDMiddleware(tenantID)})
 		RegisterHandlers(e, sh)
 
 		id := uuid.NewString()
@@ -69,7 +69,7 @@ func TestProxy(t *testing.T) {
 		e := echo.New()
 		sh := NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{
 			selectivePasstroughMiddleware(),
-			insertTenantIDMiddleware(tenantID),
+			injectTenantIDMiddleware(tenantID),
 		})
 		RegisterHandlers(e, sh)
 
@@ -109,34 +109,40 @@ func TestProxy(t *testing.T) {
 		e := echo.New()
 		sh := NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{
 			authz(),
-			insertTenantIDMiddleware(tenantID),
+			injectTenantIDMiddleware(tenantID),
 		})
 		RegisterHandlers(e, sh)
 
 		id := uuid.NewString()
 		testtable := []struct {
-			name string
-			i    string
-			o    string
-			code int
+			name   string
+			path   string
+			method string
+			code   int
 		}{
 			{
-				name: "Authorized",
-				i:    "/profiles/" + id,
-				o:    "/tenants/" + tenantID.String() + "/profiles/" + id,
-				code: http.StatusAccepted,
+				name:   "Authorized",
+				path:   "/profiles/" + id,
+				method: http.MethodGet,
+				code:   http.StatusAccepted,
 			},
 			{
-				name: "NotAuthorized",
-				i:    "/validated-profiles/" + id,
-				o:    "",
-				code: http.StatusForbidden,
+				name:   "AuthorizedWithoutAdditionalExpectation",
+				path:   "/profiles/" + id,
+				method: http.MethodPut,
+				code:   http.StatusAccepted,
+			},
+			{
+				name:   "Unauthorized",
+				path:   "/validated-profiles/" + id,
+				method: http.MethodGet,
+				code:   http.StatusForbidden,
 			},
 		}
 
 		for _, d := range testtable {
 			t.Run(d.name, func(t *testing.T) {
-				req := httptest.NewRequest(http.MethodGet, d.i, nil)
+				req := httptest.NewRequest(d.method, d.path, nil)
 				res := httptest.NewRecorder()
 				e.ServeHTTP(res, req)
 
