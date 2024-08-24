@@ -68,8 +68,8 @@ func TestProxy(t *testing.T) {
 	t.Run("SelectivePassthroughMiddleware", func(t *testing.T) {
 		e := echo.New()
 		sh := NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{
-			insertTenantIDMiddleware(tenantID),
 			selectivePasstroughMiddleware(),
+			insertTenantIDMiddleware(tenantID),
 		})
 		RegisterHandlers(e, sh)
 

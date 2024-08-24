@@ -31,14 +31,14 @@ func (s serverImpl) ProfileGetProfile(ctx context.Context, request ProfileGetPro
 
 // GetProfile implements StrictServerInterface.
 func (s serverImpl) GetProfile(ctx context.Context, request GetProfileRequestObject) (UpstreamProfileGetProfileRequestObject, error) {
-	authzExpect(ctx, func(a *authzAssertions) []authzAssertionFunc {
-		return []authzAssertionFunc{
-			a.ProfileIDNotZero(request.ProfileId),
-			a.OR(
+	authzExpect(ctx, func(e *authzExpectations) []authzExpectation {
+		return []authzExpectation{
+			e.ProfileIDNotZero(request.ProfileId),
+			e.OR(
 				func() (bool, error) { return true, nil },
-				a.AND(
+				e.AND(
 					func() (bool, error) { return true, nil },
-					func() (bool, error) { return false, nil },
+					e.False(),
 				),
 			),
 		}
@@ -111,10 +111,10 @@ func selectivePasstroughMiddleware() strictecho.StrictEchoMiddlewareFunc {
 func authz() strictecho.StrictEchoMiddlewareFunc {
 	return func(f strictecho.StrictEchoHandlerFunc, operationID string) strictecho.StrictEchoHandlerFunc {
 		return func(ctx echo.Context, request interface{}) (response interface{}, err error) {
-			a := authzAssertions{
+			exp := authzExpectations{
 				tenantID: ctx.Request().Context().Value(ctxTenantID{}).(uuid.UUID),
 			}
-			ctx.SetRequest(ctx.Request().WithContext(a.Attach(ctx.Request().Context())))
+			ctx.SetRequest(ctx.Request().WithContext(exp.Attach(ctx.Request().Context())))
 
 			// exec handler
 			res, err := f(ctx, request)
@@ -123,10 +123,10 @@ func authz() strictecho.StrictEchoMiddlewareFunc {
 			}
 
 			// assert permission result
-			if a.err != nil {
+			if exp.err != nil {
 				return nil, err
 			}
-			if !a.result {
+			if !exp.result {
 				return nil, echo.NewHTTPError(http.StatusForbidden, "forbidden")
 			}
 			return res, err
@@ -134,46 +134,26 @@ func authz() strictecho.StrictEchoMiddlewareFunc {
 	}
 }
 
-type authzAssertionFunc func() (bool, error)
+type authzExpectation func() (bool, error)
 
-type authzAssertions struct {
+type authzExpectations struct {
 	tenantID uuid.UUID
 
 	result bool
 	err    error
 }
 
-func (a *authzAssertions) Attach(ctx context.Context) context.Context {
+func (a *authzExpectations) Attach(ctx context.Context) context.Context {
 	if a == nil {
 		return ctx
 	}
 
-	return context.WithValue(ctx, authzAssertions{}, a)
+	return context.WithValue(ctx, authzExpectations{}, a)
 }
 
-func (a *authzAssertions) Expect(f ...authzAssertionFunc) (bool, error) {
+func (a *authzExpectations) OR(reqs ...func() (bool, error)) authzExpectation {
 	if a == nil {
-		return false, nil
-	}
-
-	if a.tenantID == (uuid.UUID{}) {
-		return false, nil
-	}
-
-	for _, req := range f {
-		a.result, a.err = req()
-		if !a.result || a.err != nil {
-			return a.result, a.err
-		}
-	}
-
-	a.result = true
-	return a.result, nil
-}
-
-func (a *authzAssertions) OR(reqs ...func() (bool, error)) authzAssertionFunc {
-	if a == nil {
-		return func() (bool, error) { return false, nil }
+		a.False()
 	}
 
 	return func() (oks bool, errs error) {
@@ -190,9 +170,9 @@ func (a *authzAssertions) OR(reqs ...func() (bool, error)) authzAssertionFunc {
 	}
 }
 
-func (a *authzAssertions) AND(reqs ...func() (bool, error)) authzAssertionFunc {
+func (a *authzExpectations) AND(reqs ...func() (bool, error)) authzExpectation {
 	if a == nil {
-		return func() (bool, error) { return false, nil }
+		a.False()
 	}
 
 	return func() (bool, error) {
@@ -206,9 +186,13 @@ func (a *authzAssertions) AND(reqs ...func() (bool, error)) authzAssertionFunc {
 	}
 }
 
-func (a *authzAssertions) ProfileIDNotZero(profileID uuid.UUID) authzAssertionFunc {
+func (a *authzExpectations) False() authzExpectation {
+	return func() (bool, error) { return false, nil }
+}
+
+func (a *authzExpectations) ProfileIDNotZero(profileID uuid.UUID) authzExpectation {
 	if a == nil {
-		return func() (bool, error) { return false, nil }
+		a.False()
 	}
 
 	return func() (bool, error) {
@@ -216,7 +200,25 @@ func (a *authzAssertions) ProfileIDNotZero(profileID uuid.UUID) authzAssertionFu
 	}
 }
 
-func authzExpect(ctx context.Context, f func(*authzAssertions) []authzAssertionFunc) (bool, error) {
-	v, _ := (ctx.Value(authzAssertions{})).(*authzAssertions)
-	return v.Expect(f(v)...)
+func authzExpect(ctx context.Context, f func(*authzExpectations) []authzExpectation) (bool, error) {
+	v, _ := (ctx.Value(authzExpectations{})).(*authzExpectations)
+	if v == nil {
+		return false, nil
+	}
+
+	// required expectation
+	if v.tenantID == (uuid.UUID{}) {
+		return false, nil
+	}
+
+	// additional expectation
+	for _, req := range f(v) {
+		v.result, v.err = req()
+		if !v.result || v.err != nil {
+			return v.result, v.err
+		}
+	}
+
+	v.result = true
+	return v.result, nil
 }
