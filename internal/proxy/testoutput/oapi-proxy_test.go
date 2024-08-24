@@ -108,8 +108,8 @@ func TestProxy(t *testing.T) {
 	t.Run("Authz", func(t *testing.T) {
 		e := echo.New()
 		sh := NewStrictHandler(serverImpl, proxyImpl, []strictecho.StrictEchoMiddlewareFunc{
-			insertTenantIDMiddleware(tenantID),
 			authz(),
+			insertTenantIDMiddleware(tenantID),
 		})
 		RegisterHandlers(e, sh)
 
