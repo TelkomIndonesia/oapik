@@ -22,10 +22,13 @@ import (
 
 const prefixUpstream = "upstream-"
 
+var codegenNameNormalizerFunctionName = codegen.NameNormalizerFunctionUnset
+var codegenNameNormalizerFunction = codegen.NameNormalizers[codegenNameNormalizerFunctionName]
+
 func addTemplateFunc(pe ProxyExtension) {
 	codegen.TemplateFunctions["upstreamOperationID"] = func(opid string) string {
 		for k, v := range pe.Proxied() {
-			if opid != codegen.ToCamelCase(k.OperationId) {
+			if opid != codegenNameNormalizerFunction(k.OperationId) {
 				continue
 			}
 
@@ -36,7 +39,7 @@ func addTemplateFunc(pe ProxyExtension) {
 	}
 	codegen.TemplateFunctions["upstream"] = func(opid string) string {
 		for k, v := range pe.Proxied() {
-			if opid != codegen.ToCamelCase(k.OperationId) {
+			if opid != codegenNameNormalizerFunction(k.OperationId) {
 				continue
 			}
 			return codegen.ToCamelCase(v.GetName())
@@ -45,7 +48,7 @@ func addTemplateFunc(pe ProxyExtension) {
 	}
 	codegen.TemplateFunctions["upstreams"] = func() (a []string) {
 		for _, p := range pe.Upstream() {
-			a = append(a, codegen.ToCamelCase(p.GetName()))
+			a = append(a, codegenNameNormalizerFunction(p.GetName()))
 		}
 		return
 	}
@@ -122,8 +125,9 @@ func Generate(ctx context.Context, specPath string, opts GenerateOptions) (bytes
 				Models:     true,
 			},
 			OutputOptions: codegen.OutputOptions{
-				UserTemplates: t,
-				SkipFmt:       true,
+				UserTemplates:  t,
+				SkipFmt:        true,
+				NameNormalizer: string(codegenNameNormalizerFunctionName),
 			},
 		})
 		if err != nil {
@@ -178,8 +182,9 @@ func Generate(ctx context.Context, specPath string, opts GenerateOptions) (bytes
 					Models:     true,
 				},
 				OutputOptions: codegen.OutputOptions{
-					UserTemplates: t,
-					SkipFmt:       true,
+					UserTemplates:  t,
+					SkipFmt:        true,
+					NameNormalizer: string(codegenNameNormalizerFunctionName),
 				},
 			})
 			if err != nil {
