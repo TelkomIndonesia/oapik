@@ -25,7 +25,7 @@ func (p proxyImpl) Profile() http.HandlerFunc {
 type serverImpl struct{}
 
 // ProfileGetProfile implements StrictServerInterface.
-func (s serverImpl) ProfileGetProfile(ctx context.Context, request ProfileGetProfileRequestObject) (ProfileGetProfileRequestObject, error) {
+func (s serverImpl) ProfileGetProfile(ctx context.Context, request ProfileGetProfileRequestObject) (UpstreamProfileGetProfileRequestObject, error) {
 	panic("unimplemented")
 }
 

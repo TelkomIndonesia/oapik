@@ -294,7 +294,7 @@ type StrictServerInterface interface {
 	PutProfile(ctx context.Context, request PutProfileRequestObject) (UpstreamProfilePutProfileRequestObject, error)
 	// get profile
 	// (GET /tenants/{tenant-id}/profiles/{profile-id})
-	ProfileGetProfile(ctx context.Context, request ProfileGetProfileRequestObject) (ProfileGetProfileRequestObject, error)
+	ProfileGetProfile(ctx context.Context, request ProfileGetProfileRequestObject) (UpstreamProfileGetProfileRequestObject, error)
 	// get profile
 	// (GET /validated-profiles/{profile-id})
 	GetValidatedProfile(ctx context.Context, request GetValidatedProfileRequestObject) (UpstreamProfileGetProfileRequestObject, error)

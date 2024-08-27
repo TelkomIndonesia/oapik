@@ -25,7 +25,7 @@ const prefixUpstream = "upstream-"
 func addTemplateFunc(pe ProxyExtension) {
 	codegen.TemplateFunctions["upstreamOperationID"] = func(opid string) string {
 		for k, v := range pe.Proxied() {
-			if opid != k.OperationId {
+			if opid != codegen.ToCamelCase(k.OperationId) {
 				continue
 			}
 

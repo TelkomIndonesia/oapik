@@ -24,7 +24,7 @@ type StrictServerInterface interface {
 {{range .}}{{.SummaryAsComment }}
 // ({{.Method}} {{.Path}})
 {{$opid := .OperationId -}}
-{{$opid}}(ctx context.Context, request {{$opid | ucFirst}}RequestObject) ({{ (or (upstreamOperationID $opid | camelCase)  $opid) | ucFirst}}RequestObject, error)
+{{$opid}}(ctx context.Context, request {{$opid | ucFirst}}RequestObject) ({{ (upstreamOperationID $opid | camelCase) | ucFirst}}RequestObject, error)
 {{end}}{{/* range . */ -}}
 }
 
