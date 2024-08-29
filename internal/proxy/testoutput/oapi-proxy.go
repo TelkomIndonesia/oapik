@@ -354,29 +354,34 @@ type StrictExtensionsStruct struct {
 }
 
 type StrictOperationsDataStruct struct {
+	Path      string
 	Extension StrictExtensionsStruct
 }
 
 var StrictOperationsData = func() (m StrictOperationsMap[StrictOperationsDataStruct]) {
 	{
+		m.GetProfile.Path = `/profiles/{profile-id}`
 		b := []byte("{\"proxy\":{\"inject\":{\"parameters\":[{\"in\":\"path\",\"name\":\"tenant-id\"}]},\"method\":\"get\",\"name\":\"profile\",\"path\":\"/tenants/{tenant-id}/profiles/{profile-id}\"}}")
 		if err := json.Unmarshal(b, &m.GetProfile.Extension); err != nil {
 			panic(err)
 		}
 	}
 	{
+		m.PutProfile.Path = `/profiles/{profile-id}`
 		b := []byte("{\"proxy\":{\"inject\":{\"parameters\":[{\"in\":\"path\",\"name\":\"tenant-id\"}]},\"method\":\"put\",\"name\":\"profile\",\"path\":\"/tenants/{tenant-id}/profiles/{profile-id}\"}}")
 		if err := json.Unmarshal(b, &m.PutProfile.Extension); err != nil {
 			panic(err)
 		}
 	}
 	{
+		m.ProfileGetProfile.Path = `/tenants/{tenant-id}/profiles/{profile-id}`
 		b := []byte("{\"proxy\":{\"name\":\"profile\"}}")
 		if err := json.Unmarshal(b, &m.ProfileGetProfile.Extension); err != nil {
 			panic(err)
 		}
 	}
 	{
+		m.GetValidatedProfile.Path = `/validated-profiles/{profile-id}`
 		b := []byte("{\"proxy\":{\"inject\":{\"parameters\":[{\"in\":\"path\",\"name\":\"tenant-id\"}]},\"method\":\"get\",\"name\":\"profile\",\"path\":\"/tenants/{tenant-id}/profiles/{profile-id}\"}}")
 		if err := json.Unmarshal(b, &m.GetValidatedProfile.Extension); err != nil {
 			panic(err)
