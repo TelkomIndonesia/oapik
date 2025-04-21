@@ -153,6 +153,7 @@ func (pe *ProxyExtension) pruneAndPrefixUpstream(ctx context.Context) (err error
 		docv3, _ := doc.BuildV3Model()
 		prefix := util.MapFirstEntry(util.MapFirstEntry(uopPopMap).Value).Key.GetName() + "-"
 		prefix = codegen.ToCamelCaseWithInitialisms(prefix)
+		prefixer := appendPrefix(prefix)
 
 		// add prefix to operation id
 		opmap := map[*v3.Operation]struct{}{}
@@ -186,11 +187,11 @@ func (pe *ProxyExtension) pruneAndPrefixUpstream(ctx context.Context) (err error
 		// recreate the doc so that we could get references of used operations only
 		// also add components with prefix so that it doesn't trigger error log from libopenapi
 		components := util.NewComponents()
-		err := components.CopyComponents(docv3, "")
+		err := components.CopyComponents(docv3, nil)
 		if err != nil {
 			return fmt.Errorf("fail to copy components: %w", err)
 		}
-		err = components.CopyComponents(docv3, prefix)
+		err = components.CopyComponents(docv3, prefixer)
 		if err != nil {
 			return fmt.Errorf("fail to copy components with prefix: %w", err)
 		}
@@ -201,7 +202,7 @@ func (pe *ProxyExtension) pruneAndPrefixUpstream(ctx context.Context) (err error
 
 		// rerender with prefixed added to all components
 		components = util.NewComponents()
-		err = components.CopyAndLocalizeComponents(docv3, prefix)
+		err = components.CopyAndLocalizeComponents(docv3, prefixer)
 		if err != nil {
 			return fmt.Errorf("fail to copy components with prefix: %w", err)
 		}
@@ -267,7 +268,7 @@ func (pe *ProxyExtension) CreateProxyDoc() (b []byte, ndoc libopenapi.Document, 
 			continue
 		}
 
-		err := components.CopyComponents(docv3, "")
+		err := components.CopyComponents(docv3, nil)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("fail to copy localized components: %w", err)
 		}
@@ -275,7 +276,7 @@ func (pe *ProxyExtension) CreateProxyDoc() (b []byte, ndoc libopenapi.Document, 
 		copied[docv3] = struct{}{}
 	}
 
-	err = components.CopyComponents(pe.docv3, "")
+	err = components.CopyComponents(pe.docv3, nil)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("fail to copy components on proxy doc: %w", err)
 	}
@@ -283,4 +284,13 @@ func (pe *ProxyExtension) CreateProxyDoc() (b []byte, ndoc libopenapi.Document, 
 	components.Extensions.Delete(xProxyExtensionName)
 
 	return components.RenderAndReloadWith(pe.doc)
+}
+
+func appendPrefix(prefix string) func(name string) string {
+	return func(name string) string {
+		if name == "" {
+			return prefix
+		}
+		return prefix + strings.ToUpper(name[:1]) + name[1:]
+	}
 }

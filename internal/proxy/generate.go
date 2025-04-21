@@ -20,7 +20,7 @@ import (
 	"golang.org/x/tools/imports"
 )
 
-const prefixUpstream = "upstream-"
+var prefixer = appendPrefix("upstream-")
 
 var codegenNameNormalizerFunctionName = codegen.NameNormalizerFunctionUnset
 var codegenNameNormalizerFunction = codegen.NameNormalizers[codegenNameNormalizerFunctionName]
@@ -33,7 +33,7 @@ func addTemplateFunc(pe ProxyExtension) {
 			}
 
 			uop, _ := v.GetUpstreamOperation()
-			return codegen.ToCamelCase(prefixUpstream + uop.OperationId)
+			return prefixer(uop.OperationId)
 		}
 		return ""
 	}
@@ -143,6 +143,7 @@ func Generate(ctx context.Context, specPath string, opts GenerateOptions) (bytes
 		}
 
 		generated := map[*libopenapi.DocumentModel[v3.Document]]struct{}{}
+
 		for _, pop := range pe.Proxied() {
 			doc, err := pop.GetOpenAPIDoc()
 			if err != nil {
@@ -156,15 +157,15 @@ func Generate(ctx context.Context, specPath string, opts GenerateOptions) (bytes
 			// add prefix
 			for m := range orderedmap.Iterate(ctx, docv3.Model.Paths.PathItems) {
 				for _, op := range util.GetOperationsMap(m.Value()) {
-					op.OperationId = prefixUpstream + op.OperationId
+					op.OperationId = prefixer(op.OperationId)
 				}
 			}
 			components := util.NewComponents()
-			components.CopyComponents(docv3, "")
-			components.CopyComponents(docv3, prefixUpstream)
+			components.CopyComponents(docv3, nil)
+			components.CopyComponents(docv3, prefixer)
 			_, _, ndocv3, _ := components.RenderAndReloadWith(doc)
 			components = util.NewComponents()
-			components.CopyAndLocalizeComponents(ndocv3, prefixUpstream)
+			components.CopyAndLocalizeComponents(ndocv3, prefixer)
 			spec, _ := components.RenderWith(ndocv3)
 
 			kinspec, err := loadKinDoc(spec)

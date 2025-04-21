@@ -45,15 +45,15 @@ func NewComponents() (c Components) {
 	return
 }
 
-func (c Components) CopyAndLocalizeComponents(docv3 *libopenapi.DocumentModel[v3.Document], prefix string) (err error) {
-	return c.copyComponents(docv3, prefix, true)
+func (c Components) CopyAndLocalizeComponents(docv3 *libopenapi.DocumentModel[v3.Document], renamer func(string) string) (err error) {
+	return c.copyComponents(docv3, renamer, true)
 }
 
-func (c Components) CopyComponents(docv3 *libopenapi.DocumentModel[v3.Document], prefix string) (err error) {
-	return c.copyComponents(docv3, prefix, false)
+func (c Components) CopyComponents(docv3 *libopenapi.DocumentModel[v3.Document], renamer func(string) string) (err error) {
+	return c.copyComponents(docv3, renamer, false)
 }
 
-func (c Components) copyComponents(docv3 *libopenapi.DocumentModel[v3.Document], prefix string, localized bool) (err error) {
+func (c Components) copyComponents(docv3 *libopenapi.DocumentModel[v3.Document], renamer func(string) string, localized bool) (err error) {
 	indexes := append(docv3.Index.GetRolodex().GetIndexes(), docv3.Index)
 	for _, idx := range indexes {
 		for _, ref := range idx.GetRawReferencesSequenced() {
@@ -65,7 +65,7 @@ func (c Components) copyComponents(docv3 *libopenapi.DocumentModel[v3.Document],
 				continue
 			}
 
-			exist, err := c.copyComponentNode(ref, prefix)
+			exist, err := c.copyComponentNode(ref, renamer)
 			if err != nil {
 				return fmt.Errorf("fail to locate component: %w", err)
 			}
@@ -86,7 +86,7 @@ func (c Components) copyComponents(docv3 *libopenapi.DocumentModel[v3.Document],
 				continue
 			}
 
-			LocalizeReference(ref, prefix)
+			LocalizeReference(ref, renamer)
 		}
 	}
 
@@ -103,14 +103,17 @@ func (c Components) copyComponents(docv3 *libopenapi.DocumentModel[v3.Document],
 	return c.replaceRootNodes(docv3)
 }
 
-func (c Components) copyComponentNode(src *index.Reference, prefix string) (exist bool, err error) {
+func (c Components) copyComponentNode(src *index.Reference, renamer func(string) string) (exist bool, err error) {
 	node, err := locateNode(src)
 	if err != nil {
 		return false, fmt.Errorf("fail to locate component: %w", err)
 	}
 
 	exist = true
-	name := prefix + src.Name
+	name := src.Name
+	if renamer != nil {
+		name = renamer(name)
+	}
 	switch {
 	case strings.HasPrefix(src.Definition, "#/components/schemas/"):
 		c.Schemas.Set(name, node)
