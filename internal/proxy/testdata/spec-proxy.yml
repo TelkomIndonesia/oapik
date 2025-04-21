@@ -33,6 +33,8 @@ paths:
           parameters:
             - name: tenant-id
               in: path
+      x-data:
+        proxy-name: profile
     put:
       operationId: PutProfile
       x-proxy:

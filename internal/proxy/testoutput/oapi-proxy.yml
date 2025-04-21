@@ -12,15 +12,13 @@ security:
 paths:
     "/tenants/{tenant-id}/profiles/{profile-id}":
         get:
-            x-proxy:
-                name: profile
             summary: "get profile"
-            operationId: "profile-GetProfile"
+            operationId: "ProfileGetProfile"
             responses:
                 "200":
-                    $ref: '#/components/responses/profile-Profile'
+                    $ref: '#/components/responses/ProfileProfile'
                 "404":
-                    $ref: '#/components/responses/profile-ProfileNotFound'
+                    $ref: '#/components/responses/ProfileProfileNotFound'
                 "500":
                     description: "Error"
                     content:
@@ -28,14 +26,14 @@ paths:
                             schema:
                                 properties:
                                     message:
-                                        $ref: '#/components/schemas/profile-ZeroableString'
+                                        $ref: '#/components/schemas/ProfileZeroableString'
             parameters:
                 - name: tenant-id
                   required: true
                   in: path
                   schema:
-                    $ref: '#/components/schemas/profile-UUID'
-                - $ref: '#/components/parameters/profile-ProfileID'
+                    $ref: '#/components/schemas/ProfileUUID'
+                - $ref: '#/components/parameters/ProfileProfileID'
                 - name: "some-query"
                   in: query
                   required: false
@@ -43,21 +41,15 @@ paths:
                     type: string
     "/profiles/{profile-id}":
         get:
-            x-proxy:
-                name: profile
-                path: /tenants/{tenant-id}/profiles/{profile-id}
-                method: get
-                inject:
-                    parameters:
-                        - name: tenant-id
-                          in: path
+            x-data:
+                proxy-name: profile
             summary: "get profile"
             operationId: "GetProfile"
             responses:
                 "200":
-                    $ref: '#/components/responses/profile-Profile'
+                    $ref: '#/components/responses/ProfileProfile'
                 "404":
-                    $ref: '#/components/responses/profile-ProfileNotFound'
+                    $ref: '#/components/responses/ProfileProfileNotFound'
                 "500":
                     description: "Error"
                     content:
@@ -65,43 +57,35 @@ paths:
                             schema:
                                 properties:
                                     message:
-                                        $ref: '#/components/schemas/profile-ZeroableString'
+                                        $ref: '#/components/schemas/ProfileZeroableString'
             parameters:
                 - name: "validate"
                   in: query
                   required: false
                   schema:
                     $ref: "#/components/schemas/ZeroableBoolean"
-                - $ref: '#/components/parameters/profile-ProfileID'
+                - $ref: '#/components/parameters/ProfileProfileID'
                 - name: "some-query"
                   in: query
                   required: false
                   schema:
                     type: string
         put:
-            x-proxy:
-                name: profile
-                path: /tenants/{tenant-id}/profiles/{profile-id}
-                method: put
-                inject:
-                    parameters:
-                        - name: tenant-id
-                          in: path
             summary: "Create/Update profile"
             operationId: PutProfile
             requestBody:
-                $ref: '#/components/requestBodies/profile-Profile'
+                $ref: '#/components/requestBodies/ProfileProfile'
             responses:
                 "201":
                     description: success
                     content:
                         "application/json":
                             schema:
-                                $ref: '#/components/schemas/profile-Profile'
+                                $ref: '#/components/schemas/ProfileProfile'
                 "400":
                     description: bad request
             parameters:
-                - $ref: '#/components/parameters/profile-ProfileID'
+                - $ref: '#/components/parameters/ProfileProfileID'
                 - name: "some-query"
                   in: query
                   required: false
@@ -109,21 +93,13 @@ paths:
                     type: string
     "/validated-profiles/{profile-id}":
         get:
-            x-proxy:
-                name: profile
-                path: /tenants/{tenant-id}/profiles/{profile-id}
-                method: get
-                inject:
-                    parameters:
-                        - name: tenant-id
-                          in: path
             summary: "get profile"
             operationId: "GetValidatedProfile"
             responses:
                 "200":
-                    $ref: '#/components/responses/profile-Profile'
+                    $ref: '#/components/responses/ProfileProfile'
                 "404":
-                    $ref: '#/components/responses/profile-ProfileNotFound'
+                    $ref: '#/components/responses/ProfileProfileNotFound'
                 "500":
                     description: "Error"
                     content:
@@ -131,9 +107,9 @@ paths:
                             schema:
                                 properties:
                                     message:
-                                        $ref: '#/components/schemas/profile-ZeroableString'
+                                        $ref: '#/components/schemas/ProfileZeroableString'
             parameters:
-                - $ref: '#/components/parameters/profile-ProfileID'
+                - $ref: '#/components/parameters/ProfileProfileID'
                 - name: "some-query"
                   in: query
                   required: false
@@ -141,73 +117,70 @@ paths:
                     type: string
 components:
     schemas:
-        profile-UUID:
+        ProfileUUID:
             type: string
             format: uuid
             x-go-type-skip-optional-pointer: true
-        profile-ZeroableString:
+        ProfileZeroableString:
             type: string
             x-go-type-skip-optional-pointer: true
-        profile-Profile:
+        ProfileProfile:
             properties:
                 id:
-                    $ref: '#/components/schemas/profile-UUID'
+                    $ref: '#/components/schemas/ProfileUUID'
                 tenant_id:
-                    $ref: '#/components/schemas/profile-UUID'
+                    $ref: '#/components/schemas/ProfileUUID'
                 nin:
-                    $ref: '#/components/schemas/profile-ZeroableString'
+                    $ref: '#/components/schemas/ProfileZeroableString'
                 name:
-                    $ref: '#/components/schemas/profile-ZeroableString'
+                    $ref: '#/components/schemas/ProfileZeroableString'
                 email:
-                    $ref: '#/components/schemas/profile-ZeroableString'
+                    $ref: '#/components/schemas/ProfileZeroableString'
                 phone:
-                    $ref: '#/components/schemas/profile-ZeroableString'
+                    $ref: '#/components/schemas/ProfileZeroableString'
                 dob:
-                    $ref: '#/components/schemas/profile-ZeroableTime'
-        profile-ZeroableTime:
+                    $ref: '#/components/schemas/ProfileZeroableTime'
+        ProfileZeroableTime:
             type: string
             format: date-time
             x-go-type-skip-optional-pointer: true
         ZeroableBoolean:
             type: boolean
     responses:
-        profile-Profile:
+        ProfileProfile:
             description: "success"
             headers:
                 TraceID:
-                    $ref: '#/components/headers/profile-TraceID'
+                    $ref: '#/components/headers/ProfileTraceID'
             content:
                 "application/json":
                     schema:
-                        $ref: '#/components/schemas/profile-Profile'
-        profile-ProfileNotFound:
-            $ref: '#/components/responses/profile-Error'
-        profile-Error:
+                        $ref: '#/components/schemas/ProfileProfile'
+        ProfileProfileNotFound:
+            $ref: '#/components/responses/ProfileError'
+        ProfileError:
             description: "not found"
             content:
                 "application/json":
                     schema:
                         properties:
                             id:
-                                $ref: '#/components/schemas/profile-UUID'
+                                $ref: '#/components/schemas/ProfileUUID'
     parameters:
-        profile-ProfileID:
+        ProfileProfileID:
             name: profile-id
             in: path
             required: true
             schema:
-                $ref: '#/components/schemas/profile-UUID'
+                $ref: '#/components/schemas/ProfileUUID'
     requestBodies:
-        profile-Profile:
+        ProfileProfile:
             required: true
             content:
                 application/json:
                     schema:
-                        $ref: '#/components/schemas/profile-Profile'
+                        $ref: '#/components/schemas/ProfileProfile'
     headers:
-        profile-TraceID:
+        ProfileTraceID:
             schema:
-                $ref: '#/components/schemas/profile-ZeroableString'
-    x-proxy:
-        profile:
-            spec: ./spec-profile.yml
+                $ref: '#/components/schemas/ProfileZeroableString'

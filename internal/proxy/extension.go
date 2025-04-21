@@ -8,12 +8,14 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/oapi-codegen/oapi-codegen/v2/pkg/codegen"
 	"github.com/pb33f/libopenapi"
-	"github.com/pb33f/libopenapi/datamodel/high/base"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
 	"github.com/telkomindonesia/oapik/internal/util"
 )
+
+const xProxyExtensionName = "x-proxy"
 
 type ProxyExtension struct {
 	specPath string
@@ -70,10 +72,10 @@ func (pe *ProxyExtension) loadDoc() (err error) {
 func (pe *ProxyExtension) loadProxy(ctx context.Context) (err error) {
 	pe.upstream = map[string]*Proxy{}
 	if pe.docv3.Model.Components.Extensions != nil {
-		ex, ok := pe.docv3.Model.Components.Extensions.Get("x-proxy")
+		ex, ok := pe.docv3.Model.Components.Extensions.Get(xProxyExtensionName)
 		if ok {
 			if err = ex.Decode(pe.upstream); err != nil {
-				return fmt.Errorf("fail to decode `x-proxy` component :%w", err)
+				return fmt.Errorf("fail to decode `%s` component :%w", xProxyExtensionName, err)
 			}
 
 			for k, v := range pe.upstream {
@@ -89,7 +91,7 @@ func (pe *ProxyExtension) loadProxy(ctx context.Context) (err error) {
 			if op.Extensions == nil {
 				continue
 			}
-			ex, ok := op.Extensions.Get("x-proxy")
+			ex, ok := op.Extensions.Get(xProxyExtensionName)
 			if !ok {
 				continue
 			}
@@ -149,6 +151,7 @@ func (pe *ProxyExtension) pruneAndPrefixUpstream(ctx context.Context) (err error
 	for doc, uopPopMap := range upstreams {
 		docv3, _ := doc.BuildV3Model()
 		prefix := util.MapFirstEntry(util.MapFirstEntry(uopPopMap).Value).Key.GetName() + "-"
+		prefix = codegen.ToCamelCaseWithInitialisms(prefix)
 
 		// add prefix to operation id
 		opmap := map[*v3.Operation]struct{}{}
@@ -220,21 +223,10 @@ func (pe *ProxyExtension) compile() (err error) {
 
 		// copy operation
 		opParam := util.CopyParameters(op.Parameters, params...)
-		if len(opParam) == 0 {
-			opParam = append(opParam, &v3.Parameter{
-				Name:        "-",
-				In:          "query",
-				Description: "IGNORE: workaround to prevent libopenapi from panicking",
-				Schema: base.CreateSchemaProxy(&base.Schema{
-					Type: []string{"string"},
-				}),
-				Deprecated:      true,
-				AllowEmptyValue: true,
-			})
-		}
 		opID := op.OperationId
 		opSecurity := op.Security
 		opExt := op.Extensions
+		opExt.Delete(xProxyExtensionName)
 
 		*op = *uop
 
@@ -282,6 +274,8 @@ func (pe *ProxyExtension) CreateProxyDoc() (b []byte, ndoc libopenapi.Document, 
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("fail to copy components on proxy doc: %w", err)
 	}
+
+	components.Extensions.Delete(xProxyExtensionName)
 
 	return components.RenderAndReloadWith(pe.doc)
 }

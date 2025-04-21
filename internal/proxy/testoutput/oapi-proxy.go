@@ -17,10 +17,7 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-// ZeroableBoolean defines model for ZeroableBoolean.
-type ZeroableBoolean = bool
-
-// ProfileProfile defines model for profile-Profile.
+// ProfileProfile defines model for ProfileProfile.
 type ProfileProfile struct {
 	Dob      ProfileZeroableTime   `json:"dob,omitempty"`
 	Email    ProfileZeroableString `json:"email,omitempty"`
@@ -31,19 +28,22 @@ type ProfileProfile struct {
 	TenantId ProfileUUID           `json:"tenant_id,omitempty"`
 }
 
-// ProfileUUID defines model for profile-UUID.
+// ProfileUUID defines model for ProfileUUID.
 type ProfileUUID = openapi_types.UUID
 
-// ProfileZeroableString defines model for profile-ZeroableString.
+// ProfileZeroableString defines model for ProfileZeroableString.
 type ProfileZeroableString = string
 
-// ProfileZeroableTime defines model for profile-ZeroableTime.
+// ProfileZeroableTime defines model for ProfileZeroableTime.
 type ProfileZeroableTime = time.Time
 
-// ProfileProfileID defines model for profile-ProfileID.
+// ZeroableBoolean defines model for ZeroableBoolean.
+type ZeroableBoolean = bool
+
+// ProfileProfileID defines model for ProfileProfileID.
 type ProfileProfileID = ProfileUUID
 
-// ProfileError defines model for profile-Error.
+// ProfileError defines model for ProfileError.
 type ProfileError struct {
 	Id ProfileUUID `json:"id,omitempty"`
 }
@@ -340,17 +340,9 @@ func (s StrictOperationsMap[T]) ToMap() (m map[string]T) {
 }
 
 type StrictExtensionsStruct struct {
-	Proxy struct {
-		Inject *struct {
-			Parameters []struct {
-				In   string `json:"in"`
-				Name string `json:"name"`
-			} `json:"parameters"`
-		} `json:"inject,omitempty"`
-		Method string `json:"method,omitempty"`
-		Name   string `json:"name"`
-		Path   string `json:"path,omitempty"`
-	} `json:"proxy"`
+	Data *struct {
+		ProxyName string `json:"proxy-name"`
+	} `json:"data,omitempty"`
 }
 
 type StrictOperationsDataStruct struct {
@@ -361,28 +353,28 @@ type StrictOperationsDataStruct struct {
 var StrictOperationsData = func() (m StrictOperationsMap[StrictOperationsDataStruct]) {
 	{
 		m.GetProfile.Path = `/profiles/{profile-id}`
-		b := []byte("{\"proxy\":{\"inject\":{\"parameters\":[{\"in\":\"path\",\"name\":\"tenant-id\"}]},\"method\":\"get\",\"name\":\"profile\",\"path\":\"/tenants/{tenant-id}/profiles/{profile-id}\"}}")
+		b := []byte("{\"data\":{\"proxy-name\":\"profile\"}}")
 		if err := json.Unmarshal(b, &m.GetProfile.Extension); err != nil {
 			panic(err)
 		}
 	}
 	{
 		m.PutProfile.Path = `/profiles/{profile-id}`
-		b := []byte("{\"proxy\":{\"inject\":{\"parameters\":[{\"in\":\"path\",\"name\":\"tenant-id\"}]},\"method\":\"put\",\"name\":\"profile\",\"path\":\"/tenants/{tenant-id}/profiles/{profile-id}\"}}")
+		b := []byte("{}")
 		if err := json.Unmarshal(b, &m.PutProfile.Extension); err != nil {
 			panic(err)
 		}
 	}
 	{
 		m.ProfileGetProfile.Path = `/tenants/{tenant-id}/profiles/{profile-id}`
-		b := []byte("{\"proxy\":{\"name\":\"profile\"}}")
+		b := []byte("{}")
 		if err := json.Unmarshal(b, &m.ProfileGetProfile.Extension); err != nil {
 			panic(err)
 		}
 	}
 	{
 		m.GetValidatedProfile.Path = `/validated-profiles/{profile-id}`
-		b := []byte("{\"proxy\":{\"inject\":{\"parameters\":[{\"in\":\"path\",\"name\":\"tenant-id\"}]},\"method\":\"get\",\"name\":\"profile\",\"path\":\"/tenants/{tenant-id}/profiles/{profile-id}\"}}")
+		b := []byte("{}")
 		if err := json.Unmarshal(b, &m.GetValidatedProfile.Extension); err != nil {
 			panic(err)
 		}
@@ -519,7 +511,7 @@ func (sh *strictHandler) GetValidatedProfile(ctx echo.Context, profileId Profile
 
 /* === */
 
-// UpstreamProfileProfile defines model for upstream-profile-Profile.
+// UpstreamProfileProfile defines model for upstream-ProfileProfile.
 type UpstreamProfileProfile struct {
 	Dob      UpstreamProfileZeroableTime   `json:"dob,omitempty"`
 	Email    UpstreamProfileZeroableString `json:"email,omitempty"`
@@ -530,19 +522,19 @@ type UpstreamProfileProfile struct {
 	TenantId UpstreamProfileUUID           `json:"tenant_id,omitempty"`
 }
 
-// UpstreamProfileUUID defines model for upstream-profile-UUID.
+// UpstreamProfileUUID defines model for upstream-ProfileUUID.
 type UpstreamProfileUUID = openapi_types.UUID
 
-// UpstreamProfileZeroableString defines model for upstream-profile-ZeroableString.
+// UpstreamProfileZeroableString defines model for upstream-ProfileZeroableString.
 type UpstreamProfileZeroableString = string
 
-// UpstreamProfileZeroableTime defines model for upstream-profile-ZeroableTime.
+// UpstreamProfileZeroableTime defines model for upstream-ProfileZeroableTime.
 type UpstreamProfileZeroableTime = time.Time
 
-// UpstreamProfileProfileID defines model for upstream-profile-ProfileID.
+// UpstreamProfileProfileID defines model for upstream-ProfileProfileID.
 type UpstreamProfileProfileID = UpstreamProfileUUID
 
-// UpstreamProfileError defines model for upstream-profile-Error.
+// UpstreamProfileError defines model for upstream-ProfileError.
 type UpstreamProfileError struct {
 	Id UpstreamProfileUUID `json:"id,omitempty"`
 }
