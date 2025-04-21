@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/codegen"
 	"github.com/pb33f/libopenapi"
@@ -157,7 +158,11 @@ func (pe *ProxyExtension) pruneAndPrefixUpstream(ctx context.Context) (err error
 		opmap := map[*v3.Operation]struct{}{}
 		for uop := range uopPopMap {
 			opmap[uop] = struct{}{}
-			uop.OperationId = prefix + uop.OperationId
+			opID := uop.OperationId
+			if opID != "" {
+				opID = strings.ToUpper(opID[:1]) + opID[1:]
+			}
+			uop.OperationId = prefix + opID
 		}
 
 		// delete unused operations and path items

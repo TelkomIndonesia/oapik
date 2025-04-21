@@ -74,7 +74,7 @@ paths:
                                         $ref: "#/components/schemas/ZeroableString"
         put:
             summary: "Create/Update profile"
-            operationId: PutProfile
+            operationId: putProfile
             requestBody:
                 $ref: "#/components/requestBodies/Profile"
             responses:
